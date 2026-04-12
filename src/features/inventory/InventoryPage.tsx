@@ -10,6 +10,8 @@ export function InventoryPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [hasWorkspace, setHasWorkspace] = useState(true);
+  const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -28,12 +30,18 @@ export function InventoryPage() {
       } catch {
         setHasWorkspace(false);
         setErrorMessage('We could not load your inventory. Sign in again.');
+      } finally {
+        setIsLoadingWorkspace(false);
       }
     })();
   }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
 
     const trimmedBoxName = boxName.trim();
 
@@ -46,6 +54,8 @@ export function InventoryPage() {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       const createdBox = await createBox(workspaceId, trimmedBoxName);
       setBoxes((currentBoxes) => [...currentBoxes, createdBox]);
@@ -53,6 +63,8 @@ export function InventoryPage() {
       setErrorMessage(null);
     } catch {
       setErrorMessage('We could not create your box. Try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -61,6 +73,15 @@ export function InventoryPage() {
       <main>
         <h1>Inventory</h1>
         <p role="alert">{errorMessage}</p>
+      </main>
+    );
+  }
+
+  if (isLoadingWorkspace) {
+    return (
+      <main>
+        <h1>Inventory</h1>
+        <p>Loading your inventory…</p>
       </main>
     );
   }
@@ -80,7 +101,9 @@ export function InventoryPage() {
           }}
         />
         {errorMessage ? <p role="alert">{errorMessage}</p> : null}
-        <button type="submit">Create box</button>
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Creating box…' : 'Create box'}
+        </button>
       </form>
       {boxes.length === 0 ? (
         <p>No boxes yet. Create your first box to get started.</p>
