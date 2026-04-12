@@ -4,7 +4,7 @@ These inputs came directly from the user during /init.
 Treat them as binding unless the user explicitly changes them later.
 
 ## Locked Inputs Captured During /init
-- Product name: qr_noprd
+- Product name: qrstorage_forgeflow
 - Preferred stack/ecosystem: Current stack decision:- Frontend: Next.js App Router- Hosting: Vercel Hobby- Database: Supabase Postgres- Auth: Supabase Auth magic link email- Security: Supabase RLS- Search: Postgres full-text search via .textSearch()- QR generation: qrcode.react with <QRCodeSVG>- Printing: window.print() plus @media print on a dedicated print route
 - Preferred app/runtime framework, starter, or delivery approach: Preferred framework and delivery approach:- App/runtime framework: Next.js with App Router- Delivery: hosted web app- Hosting/deployment: Vercel Hobby- Backend/data/auth: Supabase for Postgres, Auth, and RLSThis is a one-stop hosted stack intended to deliver a polished, household-scale MVP with low setup and low operational overhead.
 - Exact bootstrap/tooling inputs to preserve: Yes. These exact tooling inputs should be preserved:- Next.js with App Router- Supabase Postgres- Supabase Auth using magic link email- Supabase RLS- Vercel Hobby for hosting- Postgres full-text search via Supabase .textSearch()- qrcode.react v4.2.0 using <QRCodeSVG> client-side- window.print() with @media print CSS on a dedicated print routeAlso preserve these delivery constraints from the PRD:- web app only- mobile-friendly browser experience- cloud-hosted- no native mobile app- no offline support- no AI features in MVP- low login friction
