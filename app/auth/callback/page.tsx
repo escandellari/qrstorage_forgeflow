@@ -1,5 +1,5 @@
-import { AuthCallbackPage } from '@/src/features/auth-entry';
+import { WorkspaceOnboardingFlow } from '@/src/features/workspace-membership';
 
 export default function AuthCallbackRoute() {
-  return <AuthCallbackPage />;
+  return <WorkspaceOnboardingFlow />;
 }
