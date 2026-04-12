@@ -12,18 +12,25 @@ vi.mock('./supabaseBrowserClient', () => ({
   }),
 }));
 
+function renderHomePage() {
+  render(<HomePage />);
+}
+
+function submitEmailForm(email: string) {
+  fireEvent.change(screen.getByLabelText('Email address'), {
+    target: { value: email },
+  });
+  fireEvent.click(screen.getByRole('button', { name: 'Email me a sign-in link' }));
+}
+
 describe('HomePage auth entry route', () => {
   beforeEach(() => {
     signInWithOtpMock.mockReset();
   });
 
   it('shows a clear error when the submitted email is invalid', async () => {
-    render(<HomePage />);
-
-    fireEvent.change(screen.getByLabelText('Email address'), {
-      target: { value: 'not-an-email' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Email me a sign-in link' }));
+    renderHomePage();
+    submitEmailForm('not-an-email');
 
     expect(await screen.findByText('Enter a valid email address.')).toBeVisible();
     expect(screen.queryByText('Check your email')).not.toBeInTheDocument();
@@ -36,12 +43,8 @@ describe('HomePage auth entry route', () => {
       error: new Error('provider failed'),
     });
 
-    render(<HomePage />);
-
-    fireEvent.change(screen.getByLabelText('Email address'), {
-      target: { value: 'alex@example.com' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Email me a sign-in link' }));
+    renderHomePage();
+    submitEmailForm('alex@example.com');
 
     expect(await screen.findByText('We could not send your sign-in link. Try again.')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Email me a sign-in link' })).toBeEnabled();
