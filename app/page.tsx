@@ -1,5 +1,5 @@
-import { WorkspaceHomePage } from '@/src/features/workspace-home';
+import { AuthEntryPage } from '@/src/features/auth-entry';
 
 export default function HomePage() {
-  return <WorkspaceHomePage />;
+  return <AuthEntryPage />;
 }
