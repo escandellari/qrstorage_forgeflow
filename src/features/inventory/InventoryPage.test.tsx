@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import InventoryRoute from '../../../app/inventory/page';
 
 const {
@@ -21,6 +21,36 @@ vi.mock('./inventoryService', () => ({
   createBox: createBoxMock,
 }));
 
+const activeWorkspace = {
+  workspaceId: 'workspace-1',
+  workspaceName: 'Home Base',
+};
+
+const createdBox = {
+  id: 'box-row-1',
+  workspaceId: 'workspace-1',
+  boxId: 'BOX-0001',
+  name: 'Winter clothes',
+};
+
+function renderInventoryRoute() {
+  render(<InventoryRoute />);
+}
+
+function mockActiveWorkspace() {
+  getActiveWorkspaceMock.mockResolvedValue(activeWorkspace);
+}
+
+async function submitCreateBoxForm(name: string) {
+  fireEvent.change(await screen.findByLabelText('Box name'), {
+    target: { value: name },
+  });
+
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Create box' }));
+  });
+}
+
 describe('Inventory route', () => {
   beforeEach(() => {
     getActiveWorkspaceMock.mockReset();
@@ -29,13 +59,10 @@ describe('Inventory route', () => {
   });
 
   it('shows the create form and empty state for a workspace with no boxes', async () => {
-    getActiveWorkspaceMock.mockResolvedValue({
-      workspaceId: 'workspace-1',
-      workspaceName: 'Home Base',
-    });
+    mockActiveWorkspace();
     listBoxesMock.mockResolvedValue([]);
 
-    render(<InventoryRoute />);
+    renderInventoryRoute();
 
     expect(await screen.findByRole('heading', { name: 'Inventory' })).toBeVisible();
     expect(screen.getByLabelText('Box name')).toBeVisible();
@@ -43,20 +70,10 @@ describe('Inventory route', () => {
   });
 
   it('renders existing boxes for the active workspace', async () => {
-    getActiveWorkspaceMock.mockResolvedValue({
-      workspaceId: 'workspace-1',
-      workspaceName: 'Home Base',
-    });
-    listBoxesMock.mockResolvedValue([
-      {
-        id: 'box-row-1',
-        workspaceId: 'workspace-1',
-        boxId: 'BOX-0001',
-        name: 'Winter clothes',
-      },
-    ]);
+    mockActiveWorkspace();
+    listBoxesMock.mockResolvedValue([createdBox]);
 
-    render(<InventoryRoute />);
+    renderInventoryRoute();
 
     expect(await screen.findByText('BOX-0001')).toBeVisible();
     expect(screen.getByText('Winter clothes')).toBeVisible();
@@ -64,42 +81,25 @@ describe('Inventory route', () => {
   });
 
   it('rejects a blank box name before creating a box', async () => {
-    getActiveWorkspaceMock.mockResolvedValue({
-      workspaceId: 'workspace-1',
-      workspaceName: 'Home Base',
-    });
+    mockActiveWorkspace();
     listBoxesMock.mockResolvedValue([]);
 
-    render(<InventoryRoute />);
+    renderInventoryRoute();
 
-    fireEvent.change(await screen.findByLabelText('Box name'), {
-      target: { value: '   ' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Create box' }));
+    await submitCreateBoxForm('   ');
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Enter a box name.');
     expect(createBoxMock).not.toHaveBeenCalled();
   });
 
   it('adds the created box to the list and clears the form after a successful create', async () => {
-    getActiveWorkspaceMock.mockResolvedValue({
-      workspaceId: 'workspace-1',
-      workspaceName: 'Home Base',
-    });
+    mockActiveWorkspace();
     listBoxesMock.mockResolvedValue([]);
-    createBoxMock.mockResolvedValue({
-      id: 'box-row-1',
-      workspaceId: 'workspace-1',
-      boxId: 'BOX-0001',
-      name: 'Winter clothes',
-    });
+    createBoxMock.mockResolvedValue(createdBox);
 
-    render(<InventoryRoute />);
+    renderInventoryRoute();
 
-    fireEvent.change(await screen.findByLabelText('Box name'), {
-      target: { value: 'Winter clothes' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Create box' }));
+    await submitCreateBoxForm('Winter clothes');
 
     expect(await screen.findByText('BOX-0001')).toBeVisible();
     expect(screen.getByText('Winter clothes')).toBeVisible();
@@ -108,19 +108,13 @@ describe('Inventory route', () => {
   });
 
   it('shows a retryable error and keeps the entered name when box creation fails', async () => {
-    getActiveWorkspaceMock.mockResolvedValue({
-      workspaceId: 'workspace-1',
-      workspaceName: 'Home Base',
-    });
+    mockActiveWorkspace();
     listBoxesMock.mockResolvedValue([]);
     createBoxMock.mockRejectedValue(new Error('rpc failed'));
 
-    render(<InventoryRoute />);
+    renderInventoryRoute();
 
-    fireEvent.change(await screen.findByLabelText('Box name'), {
-      target: { value: 'Winter clothes' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Create box' }));
+    await submitCreateBoxForm('Winter clothes');
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'We could not create your box. Try again.',
@@ -132,7 +126,7 @@ describe('Inventory route', () => {
   it('shows a recovery state when no active workspace can be resolved', async () => {
     getActiveWorkspaceMock.mockResolvedValue(null);
 
-    render(<InventoryRoute />);
+    renderInventoryRoute();
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'We could not load your inventory. Sign in again.',
