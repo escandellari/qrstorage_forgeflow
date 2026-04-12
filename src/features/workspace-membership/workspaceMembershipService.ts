@@ -59,6 +59,7 @@ export async function createWorkspaceForOwner(userId: string, workspaceName: str
   });
 
   if (membershipError) {
+    await getSupabaseBrowserClient().from('workspaces').delete().eq('id', workspace.id);
     throw membershipError;
   }
 
