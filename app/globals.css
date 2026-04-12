@@ -1,0 +1,23 @@
+:root {
+  color-scheme: light;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: linear-gradient(180deg, #f7f5ff 0%, #ffffff 100%);
+  color: #1c1330;
+}
+
+a {
+  color: inherit;
+}
