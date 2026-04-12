@@ -1,0 +1,99 @@
+'use client';
+
+import { FormEvent, useEffect, useState } from 'react';
+import { getActiveWorkspace } from '@/src/features/workspace-access';
+import { type BoxSummary, createBox, listBoxes } from './inventoryService';
+
+export function InventoryPage() {
+  const [boxes, setBoxes] = useState<BoxSummary[]>([]);
+  const [boxName, setBoxName] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  const [hasWorkspace, setHasWorkspace] = useState(true);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const workspace = await getActiveWorkspace();
+        if (!workspace) {
+          setHasWorkspace(false);
+          setErrorMessage('We could not load your inventory. Sign in again.');
+          return;
+        }
+
+        setHasWorkspace(true);
+        setWorkspaceId(workspace.workspaceId);
+        const loadedBoxes = await listBoxes(workspace.workspaceId);
+        setBoxes(loadedBoxes);
+      } catch {
+        setHasWorkspace(false);
+        setErrorMessage('We could not load your inventory. Sign in again.');
+      }
+    })();
+  }, []);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const trimmedBoxName = boxName.trim();
+
+    if (!trimmedBoxName) {
+      setErrorMessage('Enter a box name.');
+      return;
+    }
+
+    if (!workspaceId) {
+      return;
+    }
+
+    try {
+      const createdBox = await createBox(workspaceId, trimmedBoxName);
+      setBoxes((currentBoxes) => [...currentBoxes, createdBox]);
+      setBoxName('');
+      setErrorMessage(null);
+    } catch {
+      setErrorMessage('We could not create your box. Try again.');
+    }
+  }
+
+  if (!hasWorkspace) {
+    return (
+      <main>
+        <h1>Inventory</h1>
+        <p role="alert">{errorMessage}</p>
+      </main>
+    );
+  }
+
+  return (
+    <main>
+      <h1>Inventory</h1>
+      <form onSubmit={handleSubmit}>
+        <label htmlFor="box-name">Box name</label>
+        <input
+          id="box-name"
+          type="text"
+          value={boxName}
+          onChange={(event) => {
+            setBoxName(event.target.value);
+            setErrorMessage(null);
+          }}
+        />
+        {errorMessage ? <p role="alert">{errorMessage}</p> : null}
+        <button type="submit">Create box</button>
+      </form>
+      {boxes.length === 0 ? (
+        <p>No boxes yet. Create your first box to get started.</p>
+      ) : (
+        <ul>
+          {boxes.map((box) => (
+            <li key={box.id}>
+              <span>{box.boxId}</span>
+              <span>{box.name}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
+  );
+}
