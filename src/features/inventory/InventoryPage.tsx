@@ -4,6 +4,10 @@ import { FormEvent, useEffect, useState } from 'react';
 import { getActiveWorkspace } from '@/src/features/workspace-access';
 import { type BoxSummary, createBox, listBoxes } from './inventoryService';
 
+function getBoxNameLabel(name: string | null) {
+  return name && name.trim() ? name : 'Unnamed box';
+}
+
 export function InventoryPage() {
   const [boxes, setBoxes] = useState<BoxSummary[]>([]);
   const [boxName, setBoxName] = useState('');
@@ -45,11 +49,6 @@ export function InventoryPage() {
 
     const trimmedBoxName = boxName.trim();
 
-    if (!trimmedBoxName) {
-      setErrorMessage('Enter a box name.');
-      return;
-    }
-
     if (!workspaceId) {
       return;
     }
@@ -57,7 +56,7 @@ export function InventoryPage() {
     setIsSubmitting(true);
 
     try {
-      const createdBox = await createBox(workspaceId, trimmedBoxName);
+      const createdBox = await createBox(workspaceId, trimmedBoxName || null);
       setBoxes((currentBoxes) => [...currentBoxes, createdBox]);
       setBoxName('');
       setErrorMessage(null);
@@ -112,7 +111,7 @@ export function InventoryPage() {
           {boxes.map((box) => (
             <li key={box.id}>
               <span>{box.boxId}</span>
-              <span>{box.name}</span>
+              <span>{getBoxNameLabel(box.name)}</span>
             </li>
           ))}
         </ul>

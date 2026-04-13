@@ -38,7 +38,7 @@ describe('inventoryService', () => {
     expect(eqMock).toHaveBeenCalledWith('workspace_id', 'workspace-1');
   });
 
-  it('calls the create_box rpc with the trimmed name and maps the created box', async () => {
+  it('calls the create_box rpc with the provided name and maps the created box', async () => {
     rpcMock.mockResolvedValue({
       data: {
         id: 'box-row-1',

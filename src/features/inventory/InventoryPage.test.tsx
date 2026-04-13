@@ -102,16 +102,22 @@ describe('Inventory route', () => {
     expect(screen.queryByText('No boxes yet. Create your first box to get started.')).not.toBeInTheDocument();
   });
 
-  it('rejects a blank box name before creating a box', async () => {
+  it('creates a box without a name and shows the fallback label', async () => {
     mockActiveWorkspace();
     listBoxesMock.mockResolvedValue([]);
+    createBoxMock.mockResolvedValue({
+      ...createdBox,
+      name: null,
+    });
 
     renderInventoryRoute();
 
     await submitCreateBoxForm('   ');
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Enter a box name.');
-    expect(createBoxMock).not.toHaveBeenCalled();
+    expect(await screen.findByText('BOX-0001')).toBeVisible();
+    expect(screen.getByText('Unnamed box')).toBeVisible();
+    expect(createBoxMock).toHaveBeenCalledWith('workspace-1', null);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('adds the created box to the list and clears the form after a successful create', async () => {
