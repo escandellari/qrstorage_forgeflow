@@ -9,6 +9,7 @@ import {
   getBoxDetails,
   updateBoxDetails,
 } from './boxDetailsService';
+import { BoxItemsPanel } from '@/src/features/box-items';
 import { BoxDetailsForm } from './BoxDetailsForm';
 
 type BoxDetailsPageProps = {
@@ -132,6 +133,7 @@ export function BoxDetailsPage({ boxId }: BoxDetailsPageProps) {
         }}
         onSubmit={handleSubmit}
       />
+      <BoxItemsPanel boxId={box.id} />
     </main>
   );
 }

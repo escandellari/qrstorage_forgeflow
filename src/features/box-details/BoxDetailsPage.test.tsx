@@ -12,6 +12,10 @@ vi.mock('@/src/features/workspace-access', () => ({
   getActiveWorkspace: getActiveWorkspaceMock,
 }));
 
+vi.mock('@/src/features/box-items', () => ({
+  BoxItemsPanel: () => <section aria-label="Box items" />,
+}));
+
 vi.mock('./boxDetailsService', () => ({
   createBoxDetailsDraft: (box: {
     name: string | null;
