@@ -1,33 +1,45 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Route } from '@playwright/test';
+
+const existingBox = {
+  id: 'box-row-1',
+  workspace_id: 'workspace-1',
+  box_id: 'BOX-0001',
+  name: 'Winter clothes',
+  location: 'Hall cupboard',
+  notes: 'Coats and hats',
+  label_target: 'Front handle',
+};
+
+const updatedBox = {
+  ...existingBox,
+  name: 'Winter coats',
+  location: 'Loft shelf',
+  notes: 'Heavy jackets only',
+  label_target: 'Lid top',
+};
+
+async function stubActiveWorkspace(route: Route) {
+  await route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify([{ workspace_id: 'workspace-1' }]),
+  });
+}
+
+async function stubBoxRead(route: Route) {
+  await route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify([existingBox]),
+  });
+}
 
 test('an authorised member opens /boxes/[boxId] and sees the saved box details', async ({
   page,
 }) => {
-  await page.route('**/rest/v1/workspace_memberships**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([{ workspace_id: 'workspace-1' }]),
-    });
-  });
+  await page.route('**/rest/v1/workspace_memberships**', stubActiveWorkspace);
 
-  await page.route('**/rest/v1/boxes**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([
-        {
-          id: 'box-row-1',
-          workspace_id: 'workspace-1',
-          box_id: 'BOX-0001',
-          name: 'Winter clothes',
-          location: 'Hall cupboard',
-          notes: 'Coats and hats',
-          label_target: 'Front handle',
-        },
-      ]),
-    });
-  });
+  await page.route('**/rest/v1/boxes**', stubBoxRead);
 
   await page.goto('/boxes/BOX-0001');
 
@@ -42,48 +54,20 @@ test('an authorised member opens /boxes/[boxId] and sees the saved box details',
 test('an authorised member edits box details and sees the saved values on the same page', async ({
   page,
 }) => {
-  await page.route('**/rest/v1/workspace_memberships**', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([{ workspace_id: 'workspace-1' }]),
-    });
-  });
+  await page.route('**/rest/v1/workspace_memberships**', stubActiveWorkspace);
 
   await page.route('**/rest/v1/boxes**', async (route) => {
     if (route.request().method() === 'PATCH') {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          id: 'box-row-1',
-          workspace_id: 'workspace-1',
-          box_id: 'BOX-0001',
-          name: 'Winter coats',
-          location: 'Loft shelf',
-          notes: 'Heavy jackets only',
-          label_target: 'Lid top',
-        }),
+        body: JSON.stringify(updatedBox),
       });
 
       return;
     }
 
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([
-        {
-          id: 'box-row-1',
-          workspace_id: 'workspace-1',
-          box_id: 'BOX-0001',
-          name: 'Winter clothes',
-          location: 'Hall cupboard',
-          notes: 'Coats and hats',
-          label_target: 'Front handle',
-        },
-      ]),
-    });
+    await stubBoxRead(route);
   });
 
   await page.goto('/boxes/BOX-0001');

@@ -27,6 +27,8 @@ type BoxRow = {
   label_target: string | null;
 };
 
+const BOX_DETAILS_SELECT = 'id, workspace_id, box_id, name, location, notes, label_target';
+
 function mapBoxRow(row: BoxRow): BoxDetails {
   return {
     id: row.id,
@@ -53,10 +55,19 @@ function normaliseDraftValue(value: string): string | null {
   return trimmedValue ? trimmedValue : null;
 }
 
+function mapDraftToBoxUpdate(draft: BoxDetailsDraft) {
+  return {
+    name: normaliseDraftValue(draft.name),
+    location: normaliseDraftValue(draft.location),
+    notes: normaliseDraftValue(draft.notes),
+    label_target: normaliseDraftValue(draft.labelTarget),
+  };
+}
+
 export async function getBoxDetails(workspaceId: string, boxId: string): Promise<BoxDetails | null> {
   const { data, error } = await getSupabaseBrowserClient()
     .from('boxes')
-    .select('id, workspace_id, box_id, name, location, notes, label_target')
+    .select(BOX_DETAILS_SELECT)
     .eq('workspace_id', workspaceId)
     .eq('box_id', boxId);
 
@@ -76,15 +87,10 @@ export async function updateBoxDetails(
 ): Promise<BoxDetails> {
   const { data, error } = await getSupabaseBrowserClient()
     .from('boxes')
-    .update({
-      name: normaliseDraftValue(draft.name),
-      location: normaliseDraftValue(draft.location),
-      notes: normaliseDraftValue(draft.notes),
-      label_target: normaliseDraftValue(draft.labelTarget),
-    })
+    .update(mapDraftToBoxUpdate(draft))
     .eq('workspace_id', workspaceId)
     .eq('box_id', boxId)
-    .select('id, workspace_id, box_id, name, location, notes, label_target')
+    .select(BOX_DETAILS_SELECT)
     .single();
 
   if (error) {
