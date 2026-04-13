@@ -4,14 +4,14 @@ export type BoxSummary = {
   id: string;
   workspaceId: string;
   boxId: string;
-  name: string;
+  name: string | null;
 };
 
 type BoxRow = {
   id: string;
   workspace_id: string;
   box_id: string;
-  name: string;
+  name: string | null;
 };
 
 function mapBoxRow(row: BoxRow): BoxSummary {
@@ -36,7 +36,10 @@ export async function listBoxes(workspaceId: string): Promise<BoxSummary[]> {
   return (data ?? []).map(mapBoxRow);
 }
 
-export async function createBox(workspaceId: string, name: string): Promise<BoxSummary> {
+export async function createBox(
+  workspaceId: string,
+  name: string | null,
+): Promise<BoxSummary> {
   const { data, error } = await getSupabaseBrowserClient().rpc('create_box', {
     workspace_id_input: workspaceId,
     name_input: name,
