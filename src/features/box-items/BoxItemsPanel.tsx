@@ -24,14 +24,18 @@ export function BoxItemsPanel({ boxId }: BoxItemsPanelProps) {
   const [draft, setDraft] = useState(createBoxItemDraft());
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadError, setHasLoadError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     void (async () => {
+      setHasLoadError(false);
+
       try {
         setItems(await listBoxItems(boxId));
       } catch {
+        setHasLoadError(true);
         setErrorMessage('We could not update your items. Try again.');
       } finally {
         setIsLoading(false);
@@ -96,7 +100,7 @@ export function BoxItemsPanel({ boxId }: BoxItemsPanelProps) {
       <h2>Box items</h2>
       {errorMessage ? <p role="alert">{errorMessage}</p> : null}
       {isLoading ? <p>Loading items…</p> : null}
-      {!isLoading && items.length === 0 ? <p>No items yet.</p> : null}
+      {!isLoading && !hasLoadError && items.length === 0 ? <p>No items yet.</p> : null}
       <ul>
         {items.map((item) => (
           <li key={item.id}>

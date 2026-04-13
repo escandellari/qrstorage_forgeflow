@@ -35,6 +35,18 @@ describe('BoxItemsPanel', () => {
     removeBoxItemMock.mockReset();
   });
 
+  it('does not claim the box is empty when the initial item load fails', async () => {
+    listBoxItemsMock.mockRejectedValue(new Error('read failed'));
+
+    render(<BoxItemsPanel boxId="box-row-1" />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'We could not update your items. Try again.',
+    );
+    expect(screen.queryByText('No items yet.')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add item' })).toBeVisible();
+  });
+
   it('shows a clear error when item removal fails without hiding the rest of the box contents', async () => {
     listBoxItemsMock.mockResolvedValue([
       {

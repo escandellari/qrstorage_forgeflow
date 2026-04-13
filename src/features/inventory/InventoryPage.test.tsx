@@ -179,6 +179,20 @@ describe('Inventory route', () => {
     expect(screen.queryByText('BOX-0001')).not.toBeInTheDocument();
   });
 
+  it('keeps box creation available when loading boxes fails after the workspace resolves', async () => {
+    mockActiveWorkspace();
+    listBoxesMock.mockRejectedValue(new Error('read failed'));
+
+    renderInventoryRoute();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'We could not load your inventory. Try again.',
+    );
+    expect(screen.getByLabelText('Box name')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Create box' })).toBeVisible();
+    expect(screen.getByText('No boxes yet. Create your first box to get started.')).toBeVisible();
+  });
+
   it('shows a recovery state when no active workspace can be resolved', async () => {
     getActiveWorkspaceMock.mockResolvedValue(null);
 
