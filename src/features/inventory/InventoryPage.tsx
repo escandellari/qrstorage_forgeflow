@@ -29,8 +29,13 @@ export function InventoryPage() {
 
         setHasWorkspace(true);
         setWorkspaceId(workspace.workspaceId);
-        const loadedBoxes = await listBoxes(workspace.workspaceId);
-        setBoxes(loadedBoxes);
+
+        try {
+          const loadedBoxes = await listBoxes(workspace.workspaceId);
+          setBoxes(loadedBoxes);
+        } catch {
+          setErrorMessage('We could not load your inventory. Try again.');
+        }
       } catch {
         setHasWorkspace(false);
         setErrorMessage('We could not load your inventory. Sign in again.');
