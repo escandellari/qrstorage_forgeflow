@@ -1,14 +1,5 @@
-import { test, expect, type Route } from '@playwright/test';
-
-const existingBox = {
-  id: 'box-row-1',
-  workspace_id: 'workspace-1',
-  box_id: 'BOX-0001',
-  name: 'Winter clothes',
-  location: 'Hall cupboard',
-  notes: 'Coats and hats',
-  label_target: 'Front handle',
-};
+import { test, expect } from '@playwright/test';
+import { existingBox, stubActiveWorkspace } from './box-test-helpers';
 
 const createdItem = {
   id: 'item-row-1',
@@ -33,14 +24,6 @@ const updatedItem = {
   notes: 'Front basket',
   quantity: 5,
 };
-
-async function stubActiveWorkspace(route: Route) {
-  await route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify([{ workspace_id: 'workspace-1' }]),
-  });
-}
 
 test('adding an item on /boxes/[boxId] updates the visible contents list for that box', async ({
   page,

@@ -1,14 +1,5 @@
-import { test, expect, type Route } from '@playwright/test';
-
-const existingBox = {
-  id: 'box-row-1',
-  workspace_id: 'workspace-1',
-  box_id: 'BOX-0001',
-  name: 'Winter clothes',
-  location: 'Hall cupboard',
-  notes: 'Coats and hats',
-  label_target: 'Front handle',
-};
+import { test, expect } from '@playwright/test';
+import { existingBox, stubActiveWorkspace, stubBoxRead } from './box-test-helpers';
 
 const updatedBox = {
   ...existingBox,
@@ -17,22 +8,6 @@ const updatedBox = {
   notes: 'Heavy jackets only',
   label_target: 'Lid top',
 };
-
-async function stubActiveWorkspace(route: Route) {
-  await route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify([{ workspace_id: 'workspace-1' }]),
-  });
-}
-
-async function stubBoxRead(route: Route) {
-  await route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify([existingBox]),
-  });
-}
 
 test('an authorised member opens /boxes/[boxId] and sees the saved box details', async ({
   page,
