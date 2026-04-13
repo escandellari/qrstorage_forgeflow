@@ -1,0 +1,1 @@
+export { BoxDetailsPage } from './BoxDetailsPage';
