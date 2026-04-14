@@ -10,6 +10,8 @@ type BoxLabelPageProps = {
   boxId: string;
 };
 
+const LABEL_LOAD_ERROR_MESSAGE = 'We could not load your label. Sign in again.';
+
 export function BoxLabelPage({ boxId }: BoxLabelPageProps) {
   const [box, setBox] = useState<BoxDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,20 +23,20 @@ export function BoxLabelPage({ boxId }: BoxLabelPageProps) {
         const workspace = await getActiveWorkspace();
 
         if (!workspace) {
-          setErrorMessage('We could not load your label. Sign in again.');
+          setErrorMessage(LABEL_LOAD_ERROR_MESSAGE);
           return;
         }
 
         const loadedBox = await getBoxDetails(workspace.workspaceId, boxId);
 
         if (!loadedBox) {
-          setErrorMessage('We could not load your label. Sign in again.');
+          setErrorMessage(LABEL_LOAD_ERROR_MESSAGE);
           return;
         }
 
         setBox(loadedBox);
       } catch {
-        setErrorMessage('We could not load your label. Sign in again.');
+        setErrorMessage(LABEL_LOAD_ERROR_MESSAGE);
       } finally {
         setIsLoading(false);
       }

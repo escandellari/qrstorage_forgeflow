@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import type { BoxDetails } from '@/src/features/box-details/boxDetailsService';
 import BoxLabelRoute from '../../../app/boxes/[boxId]/label/page';
 
 const { getActiveWorkspaceMock, getBoxDetailsMock, qrCodeSvgMock } = vi.hoisted(() => ({
@@ -27,7 +28,7 @@ const activeWorkspace = {
   workspaceName: 'Home Base',
 };
 
-const existingBox = {
+const existingBox: BoxDetails = {
   id: 'box-row-1',
   workspaceId: 'workspace-1',
   boxId: 'BOX-0001',
@@ -46,6 +47,15 @@ async function renderLabelRoute(boxId = 'BOX-0001') {
   render(await BoxLabelRoute({ params: Promise.resolve({ boxId }) }));
 }
 
+async function renderLoadedLabelRoute(box: BoxDetails = existingBox) {
+  getActiveWorkspaceMock.mockResolvedValue(activeWorkspace);
+  getBoxDetailsMock.mockResolvedValue(box);
+
+  await act(async () => {
+    await renderLabelRoute(box.boxId);
+  });
+}
+
 describe('Box label route', () => {
   beforeEach(() => {
     getActiveWorkspaceMock.mockReset();
@@ -54,12 +64,7 @@ describe('Box label route', () => {
   });
 
   it('renders the printable label for a named box', async () => {
-    getActiveWorkspaceMock.mockResolvedValue(activeWorkspace);
-    getBoxDetailsMock.mockResolvedValue(existingBox);
-
-    await act(async () => {
-      await renderLabelRoute();
-    });
+    await renderLoadedLabelRoute();
 
     expect(await screen.findByRole('heading', { name: 'BOX-0001' })).toBeVisible();
     expect(screen.getByText('Winter clothes')).toBeVisible();
@@ -67,12 +72,7 @@ describe('Box label route', () => {
   });
 
   it('encodes the canonical box page URL in the QR code', async () => {
-    getActiveWorkspaceMock.mockResolvedValue(activeWorkspace);
-    getBoxDetailsMock.mockResolvedValue(existingBox);
-
-    await act(async () => {
-      await renderLabelRoute();
-    });
+    await renderLoadedLabelRoute();
 
     expect(qrCodeSvgMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -84,12 +84,7 @@ describe('Box label route', () => {
   });
 
   it('omits the box name cleanly when the box is unnamed', async () => {
-    getActiveWorkspaceMock.mockResolvedValue(activeWorkspace);
-    getBoxDetailsMock.mockResolvedValue(unnamedBox);
-
-    await act(async () => {
-      await renderLabelRoute();
-    });
+    await renderLoadedLabelRoute(unnamedBox);
 
     expect(await screen.findByRole('heading', { name: 'BOX-0001' })).toBeVisible();
     expect(screen.getByRole('region', { name: 'Printable box label' })).toBeVisible();
@@ -98,13 +93,9 @@ describe('Box label route', () => {
 
   it('prints the label with the browser print dialog', async () => {
     const printSpy = vi.fn();
-    getActiveWorkspaceMock.mockResolvedValue(activeWorkspace);
-    getBoxDetailsMock.mockResolvedValue(existingBox);
     window.print = printSpy;
 
-    await act(async () => {
-      await renderLabelRoute();
-    });
+    await renderLoadedLabelRoute();
 
     fireEvent.click(screen.getByRole('button', { name: 'Print label' }));
 
