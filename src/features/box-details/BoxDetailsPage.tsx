@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { getActiveWorkspace } from '@/src/features/workspace-access';
 import {
@@ -123,6 +124,9 @@ export function BoxDetailsPage({ boxId }: BoxDetailsPageProps) {
           </div>
         </dl>
       </section>
+      <nav aria-label="Label actions">
+        <Link href={`/boxes/${box.boxId}/label`}>Open label view</Link>
+      </nav>
       <BoxDetailsForm
         draft={draft}
         isSaving={isSaving}
