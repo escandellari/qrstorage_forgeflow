@@ -1,0 +1,1 @@
+export { BoxLabelPage } from './BoxLabelPage';
