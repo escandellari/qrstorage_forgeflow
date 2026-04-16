@@ -7,7 +7,17 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-export function AuthEntryPage() {
+type AuthEntryPageProps = {
+  title?: string;
+  description?: string;
+  nextPath?: string;
+};
+
+export function AuthEntryPage({
+  title = 'qrstorage_forgeflow',
+  description = 'Email yourself a magic link to get into your shared storage workspace.',
+  nextPath,
+}: AuthEntryPageProps) {
   const requestMagicLink = useMagicLinkRequest();
   const [email, setEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -26,7 +36,7 @@ export function AuthEntryPage() {
     setIsSubmitting(true);
 
     try {
-      await requestMagicLink(email);
+      await requestMagicLink(email, nextPath);
       setIsSent(true);
     } catch {
       setErrorMessage('We could not send your sign-in link. Try again.');
@@ -68,12 +78,8 @@ export function AuthEntryPage() {
         >
           Sign in
         </p>
-        <h1 style={{ margin: '0 0 16px', fontSize: 'clamp(2rem, 8vw, 3.5rem)' }}>
-          qrstorage_forgeflow
-        </h1>
-        <p style={{ margin: '0 0 24px', fontSize: '1.125rem', lineHeight: 1.6 }}>
-          Email yourself a magic link to get into your shared storage workspace.
-        </p>
+        <h1 style={{ margin: '0 0 16px', fontSize: 'clamp(2rem, 8vw, 3.5rem)' }}>{title}</h1>
+        <p style={{ margin: '0 0 24px', fontSize: '1.125rem', lineHeight: 1.6 }}>{description}</p>
 
         {isSent ? (
           <div>

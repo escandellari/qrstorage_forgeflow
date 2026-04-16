@@ -1,15 +1,17 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import AuthCallbackRoute from '../../../app/auth/callback/page';
 
 const {
   exchangeAuthCodeForSessionMock,
   findWorkspaceMembershipMock,
   createWorkspaceForOwnerMock,
+  replaceMock,
 } = vi.hoisted(() => ({
   exchangeAuthCodeForSessionMock: vi.fn(),
   findWorkspaceMembershipMock: vi.fn(),
   createWorkspaceForOwnerMock: vi.fn(),
+  replaceMock: vi.fn(),
 }));
 
 vi.mock('./workspaceMembershipService', () => ({
@@ -18,11 +20,18 @@ vi.mock('./workspaceMembershipService', () => ({
   createWorkspaceForOwner: createWorkspaceForOwnerMock,
 }));
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    replace: replaceMock,
+  }),
+}));
+
 describe('Workspace onboarding callback route', () => {
   beforeEach(() => {
     exchangeAuthCodeForSessionMock.mockReset();
     findWorkspaceMembershipMock.mockReset();
     createWorkspaceForOwnerMock.mockReset();
+    replaceMock.mockReset();
     window.history.replaceState({}, '', '/auth/callback?code=magic-code');
   });
 
@@ -40,7 +49,8 @@ describe('Workspace onboarding callback route', () => {
     expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/');
   });
 
-  it('skips workspace creation when the signed-in user already belongs to a workspace', async () => {
+  it('returns an existing member to the requested box page after sign-in', async () => {
+    window.history.replaceState({}, '', '/auth/callback?code=magic-code&next=%2Fboxes%2FBOX-0001');
     exchangeAuthCodeForSessionMock.mockResolvedValue({
       data: {
         session: { access_token: 'token' },
@@ -55,7 +65,9 @@ describe('Workspace onboarding callback route', () => {
 
     render(<AuthCallbackRoute />);
 
-    expect(await screen.findByRole('heading', { name: 'You are inside Home Base' })).toBeVisible();
+    await waitFor(() => {
+      expect(replaceMock).toHaveBeenCalledWith('/boxes/BOX-0001');
+    });
     expect(screen.queryByLabelText('Workspace name')).not.toBeInTheDocument();
     expect(createWorkspaceForOwnerMock).not.toHaveBeenCalled();
   });
@@ -91,6 +103,33 @@ describe('Workspace onboarding callback route', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Enter a workspace name.');
     expect(createWorkspaceForOwnerMock).not.toHaveBeenCalled();
+  });
+
+  it('returns a first-time user to the requested box page after workspace creation', async () => {
+    window.history.replaceState({}, '', '/auth/callback?code=magic-code&next=%2Fboxes%2FBOX-0001');
+    exchangeAuthCodeForSessionMock.mockResolvedValue({
+      data: {
+        session: { access_token: 'token' },
+        user: { id: 'user-1' },
+      },
+      error: null,
+    });
+    findWorkspaceMembershipMock.mockResolvedValue(null);
+    createWorkspaceForOwnerMock.mockResolvedValue({
+      workspaceId: 'workspace-1',
+      workspaceName: 'Home Base',
+    });
+
+    render(<AuthCallbackRoute />);
+
+    fireEvent.change(await screen.findByLabelText('Workspace name'), {
+      target: { value: 'Home Base' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Create workspace' }));
+
+    await waitFor(() => {
+      expect(replaceMock).toHaveBeenCalledWith('/boxes/BOX-0001');
+    });
   });
 
   it('shows a retryable error when workspace creation fails after sign-in', async () => {

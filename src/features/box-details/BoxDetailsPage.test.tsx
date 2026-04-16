@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import BoxRoute from '../../../app/boxes/[boxId]/page';
+import { BoxDetailsPage } from './BoxDetailsPage';
 
 const { getActiveWorkspaceMock, getBoxDetailsMock, updateBoxDetailsMock } = vi.hoisted(() => ({
   getActiveWorkspaceMock: vi.fn(),
@@ -47,8 +47,8 @@ const existingBox = {
   labelTarget: 'Front handle',
 };
 
-async function renderBoxRoute(boxId = 'BOX-0001') {
-  render(await BoxRoute({ params: Promise.resolve({ boxId }) }));
+function renderBoxDetailsPage(boxId = 'BOX-0001') {
+  render(<BoxDetailsPage boxId={boxId} />);
 }
 
 describe('Box details route', () => {
@@ -63,7 +63,7 @@ describe('Box details route', () => {
     getBoxDetailsMock.mockResolvedValue(existingBox);
 
     await act(async () => {
-      await renderBoxRoute();
+      renderBoxDetailsPage();
     });
 
     expect(await screen.findByRole('heading', { name: 'BOX-0001' })).toBeVisible();
@@ -80,7 +80,7 @@ describe('Box details route', () => {
     updateBoxDetailsMock.mockRejectedValue(new Error('update failed'));
 
     await act(async () => {
-      await renderBoxRoute();
+      renderBoxDetailsPage();
     });
 
     fireEvent.change(screen.getByLabelText('Box name'), {
