@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { getActiveWorkspace } from '@/src/features/workspace-access';
 import { type BoxSummary, createBox, listBoxes } from './inventoryService';
@@ -15,6 +16,7 @@ export function InventoryPage() {
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [hasWorkspace, setHasWorkspace] = useState(true);
   const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(true);
+  const [hasLoadError, setHasLoadError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -29,11 +31,13 @@ export function InventoryPage() {
 
         setHasWorkspace(true);
         setWorkspaceId(workspace.workspaceId);
+        setHasLoadError(false);
 
         try {
           const loadedBoxes = await listBoxes(workspace.workspaceId);
           setBoxes(loadedBoxes);
         } catch {
+          setHasLoadError(true);
           setErrorMessage('We could not load your inventory. Try again.');
         }
       } catch {
@@ -109,14 +113,16 @@ export function InventoryPage() {
           {isSubmitting ? 'Creating box…' : 'Create box'}
         </button>
       </form>
-      {boxes.length === 0 ? (
+      {!hasLoadError && boxes.length === 0 ? (
         <p>No boxes yet. Create your first box to get started.</p>
       ) : (
         <ul>
           {boxes.map((box) => (
             <li key={box.id}>
-              <span>{box.boxId}</span>
-              <span>{getBoxNameLabel(box.name)}</span>
+              <Link href={`/boxes/${box.boxId}`}>
+                <span>{box.boxId}</span>
+                <span>{getBoxNameLabel(box.name)}</span>
+              </Link>
             </li>
           ))}
         </ul>
