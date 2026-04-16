@@ -91,13 +91,16 @@ describe('Inventory route', () => {
     expect(screen.getByText('No boxes yet. Create your first box to get started.')).toBeVisible();
   });
 
-  it('renders existing boxes for the active workspace', async () => {
+  it('renders existing boxes for the active workspace with links to the box pages', async () => {
     mockActiveWorkspace();
     listBoxesMock.mockResolvedValue([createdBox]);
 
     renderInventoryRoute();
 
-    expect(await screen.findByText('BOX-0001')).toBeVisible();
+    const boxLink = await screen.findByRole('link', { name: /BOX-0001/i });
+
+    expect(boxLink).toBeVisible();
+    expect(boxLink).toHaveAttribute('href', '/boxes/BOX-0001');
     expect(screen.getByText('Winter clothes')).toBeVisible();
     expect(screen.queryByText('No boxes yet. Create your first box to get started.')).not.toBeInTheDocument();
   });
@@ -179,7 +182,7 @@ describe('Inventory route', () => {
     expect(screen.queryByText('BOX-0001')).not.toBeInTheDocument();
   });
 
-  it('keeps box creation available when loading boxes fails after the workspace resolves', async () => {
+  it('keeps box creation available without showing the empty state when loading boxes fails after the workspace resolves', async () => {
     mockActiveWorkspace();
     listBoxesMock.mockRejectedValue(new Error('read failed'));
 
@@ -190,7 +193,7 @@ describe('Inventory route', () => {
     );
     expect(screen.getByLabelText('Box name')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Create box' })).toBeVisible();
-    expect(screen.getByText('No boxes yet. Create your first box to get started.')).toBeVisible();
+    expect(screen.queryByText('No boxes yet. Create your first box to get started.')).not.toBeInTheDocument();
   });
 
   it('shows a recovery state when no active workspace can be resolved', async () => {
