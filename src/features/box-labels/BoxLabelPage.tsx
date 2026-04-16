@@ -5,6 +5,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { getActiveWorkspace } from '@/src/features/workspace-access';
 import { getBoxDetails, type BoxDetails } from '@/src/features/box-details/boxDetailsService';
 import { BoxLabelPrintButton } from './BoxLabelPrintButton';
+import { buildBoxLabelUrl } from './boxLabelService';
 
 type BoxLabelPageProps = {
   boxId: string;
@@ -60,7 +61,7 @@ export function BoxLabelPage({ boxId }: BoxLabelPageProps) {
     );
   }
 
-  const boxUrl = new URL(`/boxes/${box.boxId}`, window.location.origin).toString();
+  const boxUrl = buildBoxLabelUrl(window.location.origin, box.boxId);
 
   return (
     <main className="box-label-page">
