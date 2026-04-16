@@ -1,4 +1,4 @@
-import { BoxDetailsPage } from '@/src/features/box-details';
+import { BoxAccessGate } from '@/src/features/workspace-access';
 
 type BoxRouteProps = {
   params: Promise<{
@@ -9,5 +9,5 @@ type BoxRouteProps = {
 export default async function BoxRoute({ params }: BoxRouteProps) {
   const { boxId } = await params;
 
-  return <BoxDetailsPage boxId={boxId} />;
+  return <BoxAccessGate boxId={boxId} />;
 }

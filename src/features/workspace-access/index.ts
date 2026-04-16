@@ -1,5 +1,7 @@
 import { getSupabaseBrowserClient } from '@/src/features/auth/supabaseBrowserClient';
 
+export { BoxAccessGate } from './BoxAccessGate';
+
 export type ActiveWorkspace = {
   workspaceId: string;
   workspaceName: string | null;

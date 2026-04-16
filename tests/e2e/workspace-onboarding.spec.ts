@@ -5,6 +5,7 @@ function buildSessionResponse() {
     access_token: 'access-token',
     refresh_token: 'refresh-token',
     expires_in: 3600,
+    expires_at: 1760000000,
     token_type: 'bearer',
     user: {
       id: 'user-1',
@@ -40,7 +41,7 @@ async function openCallback(page: Page) {
 test('opening the auth callback with a valid session exchange shows workspace creation for a first-time user', async ({
   page,
 }) => {
-  await page.route('**/auth/v1/token?grant_type=pkce', async (route) => {
+  await page.route('**/auth/v1/token**', async (route) => {
     await fulfillCallbackExchange(route);
   });
 
@@ -60,7 +61,7 @@ test('submitting the workspace name creates the owner workspace and shows the si
   let createdWorkspaceRequestBody = '';
   let createdMembershipRequestBody = '';
 
-  await page.route('**/auth/v1/token?grant_type=pkce', async (route) => {
+  await page.route('**/auth/v1/token**', async (route) => {
     await fulfillCallbackExchange(route);
   });
 

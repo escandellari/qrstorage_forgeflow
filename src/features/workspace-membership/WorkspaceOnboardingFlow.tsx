@@ -1,6 +1,8 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { readSafeNextPath } from '@/src/features/workspace-access/authRedirect';
 import { WorkspaceHomePage } from '@/src/features/workspace-home';
 import { WorkspaceOnboardingLayout } from './WorkspaceOnboardingLayout';
 import {
@@ -12,14 +14,19 @@ import {
 type FlowState = 'loading' | 'needs-workspace' | 'done' | 'error';
 
 export function WorkspaceOnboardingFlow() {
+  const router = useRouter();
   const [flowState, setFlowState] = useState<FlowState>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [workspaceName, setWorkspaceName] = useState('');
   const [workspaceOwnerId, setWorkspaceOwnerId] = useState<string | null>(null);
   const [activeWorkspaceName, setActiveWorkspaceName] = useState<string | null>(null);
+  const [nextPath, setNextPath] = useState<string | null>(null);
 
   useEffect(() => {
     const authCode = new URLSearchParams(window.location.search).get('code');
+    const safeNextPath = readSafeNextPath(window.location.search);
+
+    setNextPath(safeNextPath);
 
     if (!authCode) {
       setErrorMessage('This sign-in link is invalid or expired.');
@@ -45,6 +52,11 @@ export function WorkspaceOnboardingFlow() {
           return;
         }
 
+        if (safeNextPath) {
+          router.replace(safeNextPath);
+          return;
+        }
+
         setActiveWorkspaceName(membership.workspaceName ?? 'your workspace');
         setFlowState('done');
       } catch {
@@ -52,7 +64,7 @@ export function WorkspaceOnboardingFlow() {
         setFlowState('error');
       }
     })();
-  }, []);
+  }, [router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -72,6 +84,12 @@ export function WorkspaceOnboardingFlow() {
 
     try {
       const createdWorkspace = await createWorkspaceForOwner(workspaceOwnerId, trimmedWorkspaceName);
+
+      if (nextPath) {
+        router.replace(nextPath);
+        return;
+      }
+
       setActiveWorkspaceName(createdWorkspace.workspaceName ?? 'your workspace');
       setFlowState('done');
     } catch {
