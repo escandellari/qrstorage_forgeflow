@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import InventorySearchRoute from '../../../app/search/page';
+import { activeWorkspace } from '@/src/features/workspace-access/testFixtures';
 
 const {
   getActiveWorkspaceMock,
@@ -18,11 +19,6 @@ vi.mock('./inventorySearchService', () => ({
   searchInventory: searchInventoryMock,
   sortResults: (results: unknown[]) => results,
 }));
-
-const activeWorkspace = {
-  workspaceId: 'workspace-1',
-  workspaceName: 'Home Base',
-};
 
 const boxResult = {
   boxRowId: 'box-row-1',

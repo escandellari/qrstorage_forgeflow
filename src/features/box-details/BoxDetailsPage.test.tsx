@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { BoxDetailsPage } from './BoxDetailsPage';
+import { activeWorkspace } from '@/src/features/workspace-access/testFixtures';
 
 const { getActiveWorkspaceMock, getBoxDetailsMock, updateBoxDetailsMock } = vi.hoisted(() => ({
   getActiveWorkspaceMock: vi.fn(),
@@ -31,11 +32,6 @@ vi.mock('./boxDetailsService', () => ({
   getBoxDetails: getBoxDetailsMock,
   updateBoxDetails: updateBoxDetailsMock,
 }));
-
-const activeWorkspace = {
-  workspaceId: 'workspace-1',
-  workspaceName: 'Home Base',
-};
 
 const existingBox = {
   id: 'box-row-1',
