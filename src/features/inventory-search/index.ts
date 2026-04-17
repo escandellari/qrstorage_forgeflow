@@ -1,0 +1,1 @@
+export { InventorySearchPage } from './InventorySearchPage';
