@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import InventoryRoute from '../../../app/inventory/page';
+import { activeWorkspace } from '@/src/features/workspace-access/testFixtures';
 
 const {
   getActiveWorkspaceMock,
@@ -20,11 +21,6 @@ vi.mock('./inventoryService', () => ({
   listBoxes: listBoxesMock,
   createBox: createBoxMock,
 }));
-
-const activeWorkspace = {
-  workspaceId: 'workspace-1',
-  workspaceName: 'Home Base',
-};
 
 const createdBox = {
   id: 'box-row-1',
