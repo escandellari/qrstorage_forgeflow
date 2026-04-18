@@ -97,6 +97,9 @@ export function InventoryPage() {
   return (
     <main>
       <h1>Inventory</h1>
+      <nav aria-label="Inventory actions">
+        <Link href="/search">Search inventory</Link>
+      </nav>
       <form onSubmit={handleSubmit}>
         <label htmlFor="box-name">Box name</label>
         <input
