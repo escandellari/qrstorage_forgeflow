@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { BoxDetails } from '@/src/features/box-details/boxDetailsService';
 import BoxLabelRoute from '../../../app/boxes/[boxId]/label/page';
+import { activeWorkspace } from '@/src/features/workspace-access/testFixtures';
 
 const { getActiveWorkspaceMock, getBoxDetailsMock, qrCodeSvgMock } = vi.hoisted(() => ({
   getActiveWorkspaceMock: vi.fn(),
@@ -22,11 +23,6 @@ vi.mock('@/src/features/box-details/boxDetailsService', () => ({
 vi.mock('qrcode.react', () => ({
   QRCodeSVG: qrCodeSvgMock,
 }));
-
-const activeWorkspace = {
-  workspaceId: 'workspace-1',
-  workspaceName: 'Home Base',
-};
 
 const existingBox: BoxDetails = {
   id: 'box-row-1',

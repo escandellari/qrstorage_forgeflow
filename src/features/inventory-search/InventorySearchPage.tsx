@@ -3,15 +3,16 @@
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { getActiveWorkspace } from '@/src/features/workspace-access';
-import { searchInventory, type SearchResult } from './inventorySearchService';
+import { type SearchResult, searchInventory, sortResults } from './inventorySearchService';
 
 export function InventorySearchPage() {
-  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  const [hasWorkspace, setHasWorkspace] = useState(true);
   const [hasSearched, setHasSearched] = useState(false);
   const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -19,13 +20,16 @@ export function InventorySearchPage() {
         const workspace = await getActiveWorkspace();
 
         if (!workspace) {
+          setHasWorkspace(false);
           setErrorMessage('We could not load the search. Sign in again.');
           return;
         }
 
+        setHasWorkspace(true);
         setWorkspaceId(workspace.workspaceId);
         setErrorMessage(null);
       } catch {
+        setHasWorkspace(false);
         setErrorMessage('We could not load the search. Sign in again.');
       } finally {
         setIsLoadingWorkspace(false);
@@ -42,12 +46,21 @@ export function InventorySearchPage() {
 
     try {
       const nextResults = await searchInventory(query, workspaceId);
-      setResults(nextResults);
+      setResults(sortResults(nextResults));
       setHasSearched(true);
       setErrorMessage(null);
     } catch {
       setErrorMessage('Search failed. Try again.');
     }
+  }
+
+  if (!hasWorkspace) {
+    return (
+      <main>
+        <h1>Search</h1>
+        <p role="alert">{errorMessage}</p>
+      </main>
+    );
   }
 
   if (isLoadingWorkspace) {
@@ -59,27 +72,21 @@ export function InventorySearchPage() {
     );
   }
 
-  if (!workspaceId) {
-    return (
-      <main>
-        <h1>Search</h1>
-        <p role="alert">{errorMessage}</p>
-      </main>
-    );
-  }
-
   return (
     <main>
       <h1>Search</h1>
       <form aria-label="Inventory search" onSubmit={handleSubmit}>
-        {errorMessage ? <p role="alert">{errorMessage}</p> : null}
         <label htmlFor="search-query">Search</label>
         <input
           id="search-query"
           type="search"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setErrorMessage(null);
+          }}
         />
+        {errorMessage ? <p role="alert">{errorMessage}</p> : null}
         <button type="submit">Search</button>
       </form>
       {hasSearched && results.length === 0 ? (
@@ -87,7 +94,9 @@ export function InventorySearchPage() {
       ) : results.length > 0 ? (
         <ul>
           {results.map((result) => (
-            <li key={`${result.boxRowId}:${result.matchContext}`}>
+            <li
+              key={`${result.boxRowId}:${result.boxId}:${result.rankSource}:${result.matchContext}`}
+            >
               <Link href={`/boxes/${result.boxId}`}>
                 <span>{result.boxId}</span>
                 <span>{result.boxName ?? 'Unnamed box'}</span>

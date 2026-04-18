@@ -32,7 +32,10 @@ function mapSearchResultRow(row: SearchResultRow): SearchResult {
   };
 }
 
-export async function searchInventory(query: string, workspaceId: string): Promise<SearchResult[]> {
+export async function searchInventory(
+  query: string,
+  workspaceId: string,
+): Promise<SearchResult[]> {
   const { data, error } = await getSupabaseBrowserClient().rpc('search_inventory', {
     query_input: query,
     workspace_id_input: workspaceId,
@@ -43,4 +46,18 @@ export async function searchInventory(query: string, workspaceId: string): Promi
   }
 
   return ((data ?? []) as SearchResultRow[]).map(mapSearchResultRow);
+}
+
+export function sortResults(results: SearchResult[]): SearchResult[] {
+  return [...results].sort((a, b) => {
+    const rankSourceOrder = { box: 0, item: 1 };
+    const aSource = rankSourceOrder[a.rankSource];
+    const bSource = rankSourceOrder[b.rankSource];
+
+    if (aSource !== bSource) {
+      return aSource - bSource;
+    }
+
+    return a.boxId.localeCompare(b.boxId);
+  });
 }
