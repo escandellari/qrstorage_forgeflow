@@ -11,20 +11,28 @@ export function InventorySearchPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [hasWorkspace, setHasWorkspace] = useState(true);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(true);
 
   useEffect(() => {
     void (async () => {
       try {
         const workspace = await getActiveWorkspace();
+
         if (!workspace) {
           setHasWorkspace(false);
           setErrorMessage('We could not load the search. Sign in again.');
           return;
         }
+
+        setHasWorkspace(true);
         setWorkspaceId(workspace.workspaceId);
+        setErrorMessage(null);
       } catch {
         setHasWorkspace(false);
         setErrorMessage('We could not load the search. Sign in again.');
+      } finally {
+        setIsLoadingWorkspace(false);
       }
     })();
   }, []);
@@ -37,8 +45,9 @@ export function InventorySearchPage() {
     }
 
     try {
-      const rows = await searchInventory(query, workspaceId);
-      setResults(sortResults(rows));
+      const nextResults = await searchInventory(query, workspaceId);
+      setResults(sortResults(nextResults));
+      setHasSearched(true);
       setErrorMessage(null);
     } catch {
       setErrorMessage('Search failed. Try again.');
@@ -54,32 +63,50 @@ export function InventorySearchPage() {
     );
   }
 
+  if (isLoadingWorkspace) {
+    return (
+      <main>
+        <h1>Search</h1>
+        <p>Loading search…</p>
+      </main>
+    );
+  }
+
   return (
     <main>
       <h1>Search</h1>
-      <form aria-label="Find items" onSubmit={handleSubmit}>
+      <form aria-label="Inventory search" onSubmit={handleSubmit}>
         <label htmlFor="search-query">Search</label>
         <input
           id="search-query"
-          type="text"
+          type="search"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setErrorMessage(null);
+          }}
         />
         {errorMessage ? <p role="alert">{errorMessage}</p> : null}
         <button type="submit">Search</button>
       </form>
-      <ul>
-        {results.map((result, index) => (
-          <li key={`${result.boxRowId}-${result.rankSource}-${index}`}>
-            <Link href={`/boxes/${result.boxId}`}>
-              <span>{result.boxId}</span>
-              <span>{result.boxName}</span>
-            </Link>
-            <span>{result.location}</span>
-            <span>{result.matchContext}</span>
-          </li>
-        ))}
-      </ul>
+      {hasSearched && results.length === 0 ? (
+        <p>No search results found.</p>
+      ) : results.length > 0 ? (
+        <ul>
+          {results.map((result) => (
+            <li
+              key={`${result.boxRowId}:${result.boxId}:${result.rankSource}:${result.matchContext}`}
+            >
+              <Link href={`/boxes/${result.boxId}`}>
+                <span>{result.boxId}</span>
+                <span>{result.boxName ?? 'Unnamed box'}</span>
+              </Link>
+              <p>{result.location}</p>
+              <p>{result.matchContext}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </main>
   );
 }

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { stubActiveWorkspace } from './box-test-helpers';
+import { existingBox, stubActiveWorkspace, stubBoxRead } from './box-test-helpers';
 
 const boxResult = {
   box_row_id: 'box-row-1',
@@ -21,7 +21,7 @@ const itemResult = {
   match_context: 'item name: Beach towel',
 };
 
-test('submitting a query on /search calls search_inventory RPC, shows ranked results, tapping a result navigates to /boxes/[boxId]', async ({
+test('submitting a query on /search calls search_inventory RPC, shows ranked results, and opens the box page', async ({
   page,
 }) => {
   await page.route('**/rest/v1/workspace_memberships**', stubActiveWorkspace);
@@ -31,6 +31,16 @@ test('submitting a query on /search calls search_inventory RPC, shows ranked res
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([boxResult]),
+    });
+  });
+
+  await page.route('**/rest/v1/boxes**', stubBoxRead);
+
+  await page.route('**/rest/v1/items**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
     });
   });
 
@@ -47,7 +57,9 @@ test('submitting a query on /search calls search_inventory RPC, shows ranked res
 
   await page.getByRole('link', { name: /BOX-0001/i }).click();
 
-  await expect(page).toHaveURL(/\/boxes\/BOX-0001/);
+  await expect(page).toHaveURL(/\/boxes\/BOX-0001$/);
+  await expect(page.getByRole('heading', { name: 'BOX-0001' })).toBeVisible();
+  await expect(page.getByText(existingBox.name!)).toBeVisible();
 });
 
 test('box-level rank_source rows appear before item-level rows in the rendered list', async ({
@@ -56,7 +68,6 @@ test('box-level rank_source rows appear before item-level rows in the rendered l
   await page.route('**/rest/v1/workspace_memberships**', stubActiveWorkspace);
 
   await page.route('**/rest/v1/rpc/search_inventory**', async (route) => {
-    // Return item result first, then box result (to verify client-side sorting)
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

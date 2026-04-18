@@ -1,5 +1,5 @@
-import { searchInventory, sortResults } from './inventorySearchService';
 import type { SearchResult } from './inventorySearchService';
+import { searchInventory, sortResults } from './inventorySearchService';
 
 const rpcMock = vi.fn();
 
@@ -67,6 +67,15 @@ describe('inventorySearchService', () => {
           matchContext: 'item name: Beanies',
         },
       ]);
+    });
+
+    it('returns an empty array when the RPC returns null data', async () => {
+      rpcMock.mockResolvedValue({
+        data: null,
+        error: null,
+      });
+
+      await expect(searchInventory('winter', 'workspace-1')).resolves.toEqual([]);
     });
   });
 

@@ -101,6 +101,17 @@ describe('Inventory route', () => {
     expect(screen.queryByText('No boxes yet. Create your first box to get started.')).not.toBeInTheDocument();
   });
 
+  it('shows a visible path into inventory search from the inventory route', async () => {
+    mockActiveWorkspace();
+    listBoxesMock.mockResolvedValue([]);
+
+    renderInventoryRoute();
+
+    const searchLink = await screen.findByRole('link', { name: 'Search inventory' });
+
+    expect(searchLink).toHaveAttribute('href', '/search');
+  });
+
   it('creates a box without a name and shows the fallback label', async () => {
     mockActiveWorkspace();
     listBoxesMock.mockResolvedValue([]);

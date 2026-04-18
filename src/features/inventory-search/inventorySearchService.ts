@@ -45,7 +45,7 @@ export async function searchInventory(
     throw error;
   }
 
-  return (data as SearchResultRow[]).map(mapSearchResultRow);
+  return ((data ?? []) as SearchResultRow[]).map(mapSearchResultRow);
 }
 
 export function sortResults(results: SearchResult[]): SearchResult[] {
