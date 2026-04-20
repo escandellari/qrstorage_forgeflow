@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getActiveWorkspace } from '@/src/features/workspace-access';
+import { retireBox } from '@/src/features/box-retirement';
 import {
   type BoxDetails,
   type BoxDetailsDraft,
@@ -22,6 +24,7 @@ function getSavedValueLabel(value: string | null) {
 }
 
 export function BoxDetailsPage({ boxId }: BoxDetailsPageProps) {
+  const router = useRouter();
   const [box, setBox] = useState<BoxDetails | null>(null);
   const [draft, setDraft] = useState<BoxDetailsDraft>({
     name: '',
@@ -31,6 +34,7 @@ export function BoxDetailsPage({ boxId }: BoxDetailsPageProps) {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
 
@@ -83,6 +87,23 @@ export function BoxDetailsPage({ boxId }: BoxDetailsPageProps) {
     }
   }
 
+  async function handleDelete() {
+    if (!workspaceId || !box || isDeleting) {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      await retireBox(workspaceId, box.boxId);
+      setErrorMessage(null);
+      router.replace('/inventory');
+    } catch {
+      setErrorMessage('We could not delete your box. Try again.');
+      setIsDeleting(false);
+    }
+  }
+
   if (isLoading) {
     return (
       <main>
@@ -124,8 +145,11 @@ export function BoxDetailsPage({ boxId }: BoxDetailsPageProps) {
           </div>
         </dl>
       </section>
-      <nav aria-label="Label actions">
+      <nav aria-label="Box actions">
         <Link href={`/boxes/${box.boxId}/label`}>Open label view</Link>
+        <button type="button" onClick={() => void handleDelete()} disabled={isDeleting}>
+          {isDeleting ? 'Deleting box…' : 'Delete box'}
+        </button>
       </nav>
       <BoxDetailsForm
         draft={draft}

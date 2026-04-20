@@ -27,7 +27,8 @@ export async function listBoxes(workspaceId: string): Promise<BoxSummary[]> {
   const { data, error } = await getSupabaseBrowserClient()
     .from('boxes')
     .select('id, workspace_id, box_id, name')
-    .eq('workspace_id', workspaceId);
+    .eq('workspace_id', workspaceId)
+    .is('retired_at', null);
 
   if (error) {
     throw error;
