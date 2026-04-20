@@ -44,6 +44,11 @@ export function WorkspaceOnboardingFlow() {
           return;
         }
 
+        if (safeNextPath?.startsWith('/invites/')) {
+          router.replace(safeNextPath);
+          return;
+        }
+
         const membership = await findWorkspaceMembership(data.user.id);
 
         if (!membership) {

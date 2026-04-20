@@ -7,10 +7,12 @@ const {
   getActiveWorkspaceMock,
   listBoxesMock,
   createBoxMock,
+  createWorkspaceInviteMock,
 } = vi.hoisted(() => ({
   getActiveWorkspaceMock: vi.fn(),
   listBoxesMock: vi.fn(),
   createBoxMock: vi.fn(),
+  createWorkspaceInviteMock: vi.fn(),
 }));
 
 vi.mock('@/src/features/workspace-access', () => ({
@@ -20,6 +22,10 @@ vi.mock('@/src/features/workspace-access', () => ({
 vi.mock('./inventoryService', () => ({
   listBoxes: listBoxesMock,
   createBox: createBoxMock,
+}));
+
+vi.mock('@/src/features/workspace-invites/inviteService', () => ({
+  createWorkspaceInvite: createWorkspaceInviteMock,
 }));
 
 const createdBox = {
@@ -65,6 +71,7 @@ describe('Inventory route', () => {
     getActiveWorkspaceMock.mockReset();
     listBoxesMock.mockReset();
     createBoxMock.mockReset();
+    createWorkspaceInviteMock.mockReset();
   });
 
   it('waits for the active workspace before enabling box creation', async () => {
@@ -110,6 +117,48 @@ describe('Inventory route', () => {
     const searchLink = await screen.findByRole('link', { name: 'Search inventory' });
 
     expect(searchLink).toHaveAttribute('href', '/search');
+  });
+
+  it('rejects a blank member email before creating an invite', async () => {
+    mockActiveWorkspace();
+    listBoxesMock.mockResolvedValue([]);
+
+    renderInventoryRoute();
+
+    const createInviteButton = await screen.findByRole('button', { name: 'Create invite' });
+
+    await act(async () => {
+      fireEvent.click(createInviteButton);
+    });
+
+    expect(createWorkspaceInviteMock).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Member email address')).toBeRequired();
+  });
+
+  it('creates an email-bound workspace invite from the inventory route', async () => {
+    mockActiveWorkspace();
+    listBoxesMock.mockResolvedValue([]);
+    createWorkspaceInviteMock.mockResolvedValue({
+      token: 'invite-token',
+      invitedEmail: 'pat@example.com',
+    });
+
+    renderInventoryRoute();
+
+    fireEvent.change(await screen.findByLabelText('Member email address'), {
+      target: { value: 'pat@example.com' },
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Create invite' }));
+    });
+
+    expect(createWorkspaceInviteMock).toHaveBeenCalledWith('workspace-1', 'pat@example.com');
+    expect(await screen.findByText('Invite ready for pat@example.com.')).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Email invite' })).toHaveAttribute(
+      'href',
+      expect.stringContaining('mailto:pat@example.com'),
+    );
   });
 
   it('creates a box without a name and shows the fallback label', async () => {

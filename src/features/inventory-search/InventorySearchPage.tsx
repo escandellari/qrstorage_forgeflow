@@ -75,7 +75,7 @@ export function InventorySearchPage() {
   return (
     <main>
       <h1>Search</h1>
-      <form aria-label="Inventory search" onSubmit={handleSubmit}>
+      <form aria-label="Inventory lookup form" onSubmit={handleSubmit}>
         <label htmlFor="search-query">Search</label>
         <input
           id="search-query"
