@@ -59,7 +59,7 @@ describe('InventorySearchPage', () => {
     });
 
     await act(async () => {
-      fireEvent.submit(screen.getByRole('form', { name: 'Inventory search' }));
+      fireEvent.submit(screen.getByRole('form', { name: 'Inventory lookup form' }));
     });
 
     await waitFor(() => {
@@ -83,7 +83,7 @@ describe('InventorySearchPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'We could not load the search. Sign in again.',
     );
-    expect(screen.queryByRole('form', { name: 'Inventory search' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('form', { name: 'Inventory lookup form' })).not.toBeInTheDocument();
   });
 
   it('keeps the previous results visible and shows a retryable error when search fails on a later submit', async () => {
@@ -97,7 +97,7 @@ describe('InventorySearchPage', () => {
     });
 
     await act(async () => {
-      fireEvent.submit(screen.getByRole('form', { name: 'Inventory search' }));
+      fireEvent.submit(screen.getByRole('form', { name: 'Inventory lookup form' }));
     });
 
     await waitFor(() => {
@@ -111,7 +111,7 @@ describe('InventorySearchPage', () => {
     });
 
     await act(async () => {
-      fireEvent.submit(screen.getByRole('form', { name: 'Inventory search' }));
+      fireEvent.submit(screen.getByRole('form', { name: 'Inventory lookup form' }));
     });
 
     await waitFor(() => {
@@ -135,7 +135,7 @@ describe('InventorySearchPage', () => {
     expect(searchInventoryMock).not.toHaveBeenCalled();
 
     await act(async () => {
-      fireEvent.submit(screen.getByRole('form', { name: 'Inventory search' }));
+      fireEvent.submit(screen.getByRole('form', { name: 'Inventory lookup form' }));
     });
 
     expect(searchInventoryMock).toHaveBeenCalledTimes(1);
@@ -162,7 +162,7 @@ describe('InventorySearchPage', () => {
     });
 
     await act(async () => {
-      fireEvent.submit(screen.getByRole('form', { name: 'Inventory search' }));
+      fireEvent.submit(screen.getByRole('form', { name: 'Inventory lookup form' }));
     });
 
     expect(await screen.findByText('No search results found.')).toBeVisible();

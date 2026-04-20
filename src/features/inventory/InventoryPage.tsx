@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
+import { InviteSender } from '@/src/features/workspace-invites';
 import { getActiveWorkspace } from '@/src/features/workspace-access';
 import { type BoxSummary, createBox, listBoxes } from './inventoryService';
 
@@ -100,6 +101,7 @@ export function InventoryPage() {
       <nav aria-label="Inventory actions">
         <Link href="/search">Search inventory</Link>
       </nav>
+      {workspaceId ? <InviteSender workspaceId={workspaceId} /> : null}
       <form onSubmit={handleSubmit}>
         <label htmlFor="box-name">Box name</label>
         <input
