@@ -6,28 +6,23 @@ type BoxRouteRow = {
   id: string;
 };
 
-async function findActiveBox(workspaceId: string, boxId: string) {
-  const { data, error } = await getSupabaseBrowserClient()
+const BOX_ROUTE_SELECT = 'id';
+
+async function findBoxByRetirementState(
+  workspaceId: string,
+  boxId: string,
+  retirementState: 'active' | 'deleted',
+) {
+  const baseQuery = getSupabaseBrowserClient()
     .from('boxes')
-    .select('id')
+    .select(BOX_ROUTE_SELECT)
     .eq('workspace_id', workspaceId)
-    .eq('box_id', boxId)
-    .is('retired_at', null);
+    .eq('box_id', boxId);
 
-  if (error) {
-    throw error;
-  }
-
-  return (data?.[0] as BoxRouteRow | undefined) ?? null;
-}
-
-async function findRetiredBox(workspaceId: string, boxId: string) {
-  const { data, error } = await getSupabaseBrowserClient()
-    .from('boxes')
-    .select('id')
-    .eq('workspace_id', workspaceId)
-    .eq('box_id', boxId)
-    .not('retired_at', 'is', null);
+  const { data, error } =
+    retirementState === 'active'
+      ? await baseQuery.is('retired_at', null)
+      : await baseQuery.not('retired_at', 'is', null);
 
   if (error) {
     throw error;
@@ -40,11 +35,11 @@ export async function getBoxRouteState(
   workspaceId: string,
   boxId: string,
 ): Promise<BoxRouteState> {
-  if (await findActiveBox(workspaceId, boxId)) {
+  if (await findBoxByRetirementState(workspaceId, boxId, 'active')) {
     return 'active';
   }
 
-  if (await findRetiredBox(workspaceId, boxId)) {
+  if (await findBoxByRetirementState(workspaceId, boxId, 'deleted')) {
     return 'deleted';
   }
 

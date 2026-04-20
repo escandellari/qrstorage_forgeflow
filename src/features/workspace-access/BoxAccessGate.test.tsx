@@ -1,10 +1,10 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { BoxAccessGate } from './BoxAccessGate';
+import { activeWorkspace } from './testFixtures';
 
-const { getActiveWorkspaceMock, getBoxDetailsMock, signInWithOtpMock, getBoxRouteStateMock } = vi.hoisted(() => ({
+const { getActiveWorkspaceMock, signInWithOtpMock, getBoxRouteStateMock } = vi.hoisted(() => ({
   getActiveWorkspaceMock: vi.fn(),
-  getBoxDetailsMock: vi.fn(),
   signInWithOtpMock: vi.fn(),
   getBoxRouteStateMock: vi.fn(),
 }));
@@ -33,10 +33,6 @@ vi.mock('@/src/features/box-retirement', async () => {
   };
 });
 
-vi.mock('@/src/features/box-details/boxDetailsService', () => ({
-  getBoxDetails: getBoxDetailsMock,
-}));
-
 vi.mock('@/src/features/auth-entry/supabaseBrowserClient', () => ({
   getSupabaseBrowserClient: () => ({
     auth: {
@@ -52,7 +48,6 @@ function renderBoxAccessGate(boxId = 'BOX-0001') {
 describe('Box access gate', () => {
   beforeEach(() => {
     getActiveWorkspaceMock.mockReset();
-    getBoxDetailsMock.mockReset();
     signInWithOtpMock.mockReset();
     getBoxRouteStateMock.mockReset();
   });
@@ -97,10 +92,7 @@ describe('Box access gate', () => {
   });
 
   it('keeps deleted-box and access-denied states distinct for signed-in members', async () => {
-    getActiveWorkspaceMock.mockResolvedValue({
-      workspaceId: 'workspace-1',
-      workspaceName: 'Home Base',
-    });
+    getActiveWorkspaceMock.mockResolvedValue(activeWorkspace);
     getBoxRouteStateMock.mockResolvedValueOnce('deleted');
 
     await act(async () => {
@@ -113,10 +105,7 @@ describe('Box access gate', () => {
   });
 
   it('shows access denied without using deleted-box copy for an unauthorised member', async () => {
-    getActiveWorkspaceMock.mockResolvedValue({
-      workspaceId: 'workspace-1',
-      workspaceName: 'Home Base',
-    });
+    getActiveWorkspaceMock.mockResolvedValue(activeWorkspace);
     getBoxRouteStateMock.mockResolvedValueOnce('access-denied');
 
     await act(async () => {
