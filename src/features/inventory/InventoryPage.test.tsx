@@ -119,6 +119,22 @@ describe('Inventory route', () => {
     expect(searchLink).toHaveAttribute('href', '/search');
   });
 
+  it('rejects a blank member email before creating an invite', async () => {
+    mockActiveWorkspace();
+    listBoxesMock.mockResolvedValue([]);
+
+    renderInventoryRoute();
+
+    const createInviteButton = await screen.findByRole('button', { name: 'Create invite' });
+
+    await act(async () => {
+      fireEvent.click(createInviteButton);
+    });
+
+    expect(createWorkspaceInviteMock).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Member email address')).toBeRequired();
+  });
+
   it('creates an email-bound workspace invite from the inventory route', async () => {
     mockActiveWorkspace();
     listBoxesMock.mockResolvedValue([]);

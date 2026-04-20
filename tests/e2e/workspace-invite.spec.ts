@@ -18,13 +18,9 @@ function buildSessionResponse() {
   };
 }
 
-function buildInviteRow(token: string, acceptedAt: string | null) {
+function buildAcceptInviteResponse(status: 'accepted' | 'already-accepted') {
   return {
-    token,
-    workspace_id: 'workspace-1',
-    invited_email: 'alex@example.com',
-    expires_at: '2099-04-20T12:00:00.000Z',
-    accepted_at: acceptedAt,
+    status,
   };
 }
 
@@ -62,43 +58,19 @@ async function stubCommonInviteRoutes(page: Page) {
   });
 }
 
-async function stubInviteRoutes(
+async function stubAcceptInviteRoute(
   page: Page,
-  options: {
-    token: string;
-    acceptedAt: string | null;
-    patchedAcceptedAt?: string | null;
-  },
+  response: ReturnType<typeof buildAcceptInviteResponse>,
+  onCall?: (requestBody: string) => void,
 ) {
-  await page.route('**/rest/v1/workspace_invites**', async (route) => {
-    if (route.request().method() === 'PATCH') {
-      await fulfillJson(route, [buildInviteRow(options.token, options.patchedAcceptedAt ?? options.acceptedAt)]);
-      return;
-    }
-
-    await fulfillJson(route, [buildInviteRow(options.token, options.acceptedAt)]);
+  await page.route('**/rest/v1/rpc/accept_workspace_invite', async (route) => {
+    onCall?.(route.request().postData() ?? '');
+    await fulfillJson(route, response);
   });
 }
 
-async function stubMembershipRoutes(
-  page: Page,
-  onInsert?: (requestBody: string) => void,
-) {
+async function stubMembershipRoutes(page: Page) {
   await page.route('**/rest/v1/workspace_memberships**', async (route) => {
-    if (route.request().method() === 'POST') {
-      onInsert?.(route.request().postData() ?? '');
-      await fulfillJson(
-        route,
-        {
-          workspace_id: 'workspace-1',
-          user_id: 'user-1',
-          role: 'member',
-        },
-        201,
-      );
-      return;
-    }
-
     await fulfillJson(route, [{ workspace_id: 'workspace-1' }]);
   });
 }
@@ -123,42 +95,28 @@ async function completeInviteSignIn(page: Page, token: string) {
 test('a signed-out invite recipient signs in, accepts the invite, and lands in the workspace', async ({
   page,
 }) => {
-  let createdMembershipRequestBody = '';
+  let acceptInviteRequestBody = '';
 
   await stubCommonInviteRoutes(page);
-  await stubInviteRoutes(page, {
-    token: 'invite-token',
-    acceptedAt: null,
-    patchedAcceptedAt: '2026-04-20T12:00:00.000Z',
+  await stubAcceptInviteRoute(page, buildAcceptInviteResponse('accepted'), (requestBody) => {
+    acceptInviteRequestBody = requestBody;
   });
-  await stubMembershipRoutes(page, (requestBody) => {
-    createdMembershipRequestBody = requestBody;
-  });
+  await stubMembershipRoutes(page);
 
   await completeInviteSignIn(page, 'invite-token');
 
   await expect(page).toHaveURL(/\/inventory$/);
   await expect(page.getByRole('heading', { name: 'Inventory' })).toBeVisible();
-  expect(createdMembershipRequestBody).toContain('workspace-1');
-  expect(createdMembershipRequestBody).toContain('user-1');
-  expect(createdMembershipRequestBody).toContain('member');
+  expect(acceptInviteRequestBody).toContain('invite-token');
 });
 
 test('an already-accepted invite returns the recipient to the workspace without failing', async ({ page }) => {
-  let membershipInsertCount = 0;
-
   await stubCommonInviteRoutes(page);
-  await stubInviteRoutes(page, {
-    token: 'accepted-token',
-    acceptedAt: '2026-04-20T12:00:00.000Z',
-  });
-  await stubMembershipRoutes(page, () => {
-    membershipInsertCount += 1;
-  });
+  await stubAcceptInviteRoute(page, buildAcceptInviteResponse('already-accepted'));
+  await stubMembershipRoutes(page);
 
   await completeInviteSignIn(page, 'accepted-token');
 
   await expect(page).toHaveURL(/\/inventory$/);
   await expect(page.getByRole('heading', { name: 'Inventory' })).toBeVisible();
-  expect(membershipInsertCount).toBe(0);
 });

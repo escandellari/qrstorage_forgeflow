@@ -36,6 +36,11 @@ export function InviteSender({ workspaceId }: InviteSenderProps) {
       return;
     }
 
+    if (!email.trim()) {
+      setErrorMessage('Enter an email address.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -61,6 +66,7 @@ export function InviteSender({ workspaceId }: InviteSenderProps) {
         <input
           id="member-email-address"
           type="email"
+          required
           value={email}
           onChange={(event) => {
             setEmail(event.target.value);
