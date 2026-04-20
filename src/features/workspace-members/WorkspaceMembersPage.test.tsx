@@ -69,6 +69,7 @@ describe('Workspace members route', () => {
 
     expect(await screen.findByText('user-1')).toBeVisible();
     expect(screen.getByText('user-2')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Leave workspace' })).not.toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Remove member' })).toHaveLength(1);
 
     await act(async () => {
@@ -118,5 +119,59 @@ describe('Workspace members route', () => {
 
     expect(leaveWorkspaceMock).toHaveBeenCalledWith('workspace-1');
     expect(replaceMock).toHaveBeenCalledWith('/');
+  });
+
+  it('keeps the members list visible when removing another member fails', async () => {
+    getActiveWorkspaceMock.mockResolvedValue(activeWorkspace);
+    listWorkspaceMembersMock.mockResolvedValue([ownerMembership, memberMembership]);
+    removeWorkspaceMemberMock.mockRejectedValue(new Error('remove failed'));
+
+    await act(async () => {
+      renderWorkspaceMembersRoute();
+    });
+
+    expect(await screen.findByText('user-1')).toBeVisible();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Remove member' }));
+    });
+
+    expect(screen.getByRole('alert')).toHaveTextContent('We could not remove this member. Try again.');
+    expect(screen.getByText('user-1')).toBeVisible();
+    expect(screen.getByText('user-2')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Remove member' })).toBeVisible();
+  });
+
+  it('keeps the members list visible when leaving the workspace fails', async () => {
+    getActiveWorkspaceMock.mockResolvedValue(activeWorkspace);
+    listWorkspaceMembersMock.mockResolvedValue([
+      {
+        userId: 'user-1',
+        role: 'member',
+        isCurrentUser: true,
+      },
+      {
+        userId: 'user-2',
+        role: 'owner',
+        isCurrentUser: false,
+      },
+    ]);
+    leaveWorkspaceMock.mockRejectedValue(new Error('leave failed'));
+
+    await act(async () => {
+      renderWorkspaceMembersRoute();
+    });
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Leave workspace' }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Confirm leave workspace' }));
+    });
+
+    expect(screen.getByRole('alert')).toHaveTextContent('We could not leave this workspace. Try again.');
+    expect(screen.getByText('user-1')).toBeVisible();
+    expect(screen.getByText('user-2')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Confirm leave workspace' })).toBeVisible();
+    expect(replaceMock).not.toHaveBeenCalled();
   });
 });

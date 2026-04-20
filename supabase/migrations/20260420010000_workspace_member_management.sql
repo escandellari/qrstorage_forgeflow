@@ -49,18 +49,39 @@ set search_path = public
 as $$
 declare
   current_user_id uuid := auth.uid();
+  current_user_role text;
+  owner_count bigint;
 begin
   if current_user_id is null then
     raise exception 'Authentication required';
   end if;
 
-  delete from public.workspace_memberships
+  select role
+  into current_user_role
+  from public.workspace_memberships
   where workspace_id = workspace_id_input
-    and user_id = current_user_id;
+    and user_id = current_user_id
+  limit 1;
 
   if not found then
     raise exception 'Workspace access denied';
   end if;
+
+  if current_user_role = 'owner' then
+    select count(*)
+    into owner_count
+    from public.workspace_memberships
+    where workspace_id = workspace_id_input
+      and role = 'owner';
+
+    if owner_count <= 1 then
+      raise exception 'Transfer ownership before leaving workspace';
+    end if;
+  end if;
+
+  delete from public.workspace_memberships
+  where workspace_id = workspace_id_input
+    and user_id = current_user_id;
 
   return jsonb_build_object('status', 'left');
 end;
