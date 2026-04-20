@@ -2,6 +2,7 @@ import { createBox, listBoxes } from './inventoryService';
 
 const selectMock = vi.fn();
 const eqMock = vi.fn();
+const isMock = vi.fn();
 const fromMock = vi.fn();
 const rpcMock = vi.fn();
 
@@ -16,14 +17,18 @@ describe('inventoryService', () => {
   beforeEach(() => {
     selectMock.mockReset();
     eqMock.mockReset();
+    isMock.mockReset();
     fromMock.mockReset();
     rpcMock.mockReset();
   });
 
   it('returns an empty list when the workspace has no boxes', async () => {
-    eqMock.mockResolvedValue({
+    isMock.mockResolvedValue({
       data: null,
       error: null,
+    });
+    eqMock.mockReturnValue({
+      is: isMock,
     });
     selectMock.mockReturnValue({
       eq: eqMock,
@@ -36,6 +41,7 @@ describe('inventoryService', () => {
     expect(fromMock).toHaveBeenCalledWith('boxes');
     expect(selectMock).toHaveBeenCalledWith('id, workspace_id, box_id, name');
     expect(eqMock).toHaveBeenCalledWith('workspace_id', 'workspace-1');
+    expect(isMock).toHaveBeenCalledWith('retired_at', null);
   });
 
   it('calls the create_box rpc with the provided name and maps the created box', async () => {

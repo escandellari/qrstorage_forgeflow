@@ -3,14 +3,32 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { BoxDetailsPage } from './BoxDetailsPage';
 import { activeWorkspace } from '@/src/features/workspace-access/testFixtures';
 
-const { getActiveWorkspaceMock, getBoxDetailsMock, updateBoxDetailsMock } = vi.hoisted(() => ({
+const {
+  getActiveWorkspaceMock,
+  getBoxDetailsMock,
+  updateBoxDetailsMock,
+  retireBoxMock,
+  replaceMock,
+} = vi.hoisted(() => ({
   getActiveWorkspaceMock: vi.fn(),
   getBoxDetailsMock: vi.fn(),
   updateBoxDetailsMock: vi.fn(),
+  retireBoxMock: vi.fn(),
+  replaceMock: vi.fn(),
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    replace: replaceMock,
+  }),
 }));
 
 vi.mock('@/src/features/workspace-access', () => ({
   getActiveWorkspace: getActiveWorkspaceMock,
+}));
+
+vi.mock('@/src/features/box-retirement', () => ({
+  retireBox: retireBoxMock,
 }));
 
 vi.mock('@/src/features/box-items', () => ({
@@ -52,6 +70,8 @@ describe('Box details route', () => {
     getActiveWorkspaceMock.mockReset();
     getBoxDetailsMock.mockReset();
     updateBoxDetailsMock.mockReset();
+    retireBoxMock.mockReset();
+    replaceMock.mockReset();
   });
 
   it('loads the existing box into the editable form', async () => {
@@ -94,5 +114,22 @@ describe('Box details route', () => {
     expect(screen.getByText('Saved box details')).toBeVisible();
     expect(screen.getByText('Winter clothes')).toBeVisible();
     expect(screen.queryByText('Winter coats')).not.toBeInTheDocument();
+  });
+
+  it('retires the box and returns to inventory from the box page', async () => {
+    getActiveWorkspaceMock.mockResolvedValue(activeWorkspace);
+    getBoxDetailsMock.mockResolvedValue(existingBox);
+    retireBoxMock.mockResolvedValue(undefined);
+
+    await act(async () => {
+      renderBoxDetailsPage();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Delete box' }));
+    });
+
+    expect(retireBoxMock).toHaveBeenCalledWith('workspace-1', 'BOX-0001');
+    expect(replaceMock).toHaveBeenCalledWith('/inventory');
   });
 });

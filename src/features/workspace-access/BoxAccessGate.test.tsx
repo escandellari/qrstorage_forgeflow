@@ -1,14 +1,15 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import BoxRoute from '../../../app/boxes/[boxId]/page';
+import { BoxAccessGate } from './BoxAccessGate';
 
-const { getActiveWorkspaceMock, getBoxDetailsMock, signInWithOtpMock } = vi.hoisted(() => ({
+const { getActiveWorkspaceMock, getBoxDetailsMock, signInWithOtpMock, getBoxRouteStateMock } = vi.hoisted(() => ({
   getActiveWorkspaceMock: vi.fn(),
   getBoxDetailsMock: vi.fn(),
   signInWithOtpMock: vi.fn(),
+  getBoxRouteStateMock: vi.fn(),
 }));
 
-vi.mock('@/src/features/workspace-access', async () => {
+vi.mock('./index', async () => {
   const actual = await vi.importActual<typeof import('./index')>('./index');
 
   return {
@@ -20,6 +21,17 @@ vi.mock('@/src/features/workspace-access', async () => {
 vi.mock('@/src/features/box-details', () => ({
   BoxDetailsPage: ({ boxId }: { boxId: string }) => <main>Loaded {boxId}</main>,
 }));
+
+vi.mock('@/src/features/box-retirement', async () => {
+  const actual = await vi.importActual<typeof import('@/src/features/box-retirement')>(
+    '@/src/features/box-retirement',
+  );
+
+  return {
+    ...actual,
+    getBoxRouteState: getBoxRouteStateMock,
+  };
+});
 
 vi.mock('@/src/features/box-details/boxDetailsService', () => ({
   getBoxDetails: getBoxDetailsMock,
@@ -33,8 +45,8 @@ vi.mock('@/src/features/auth-entry/supabaseBrowserClient', () => ({
   }),
 }));
 
-async function renderBoxRoute(boxId = 'BOX-0001') {
-  render(await BoxRoute({ params: Promise.resolve({ boxId }) }));
+function renderBoxAccessGate(boxId = 'BOX-0001') {
+  render(<BoxAccessGate boxId={boxId} />);
 }
 
 describe('Box access gate', () => {
@@ -42,13 +54,14 @@ describe('Box access gate', () => {
     getActiveWorkspaceMock.mockReset();
     getBoxDetailsMock.mockReset();
     signInWithOtpMock.mockReset();
+    getBoxRouteStateMock.mockReset();
   });
 
   it('shows a sign-in prompt for a signed-out box visitor', async () => {
     getActiveWorkspaceMock.mockResolvedValue(null);
 
     await act(async () => {
-      await renderBoxRoute();
+      renderBoxAccessGate();
     });
 
     expect(await screen.findByRole('heading', { name: 'Sign in to open BOX-0001' })).toBeVisible();
@@ -64,7 +77,7 @@ describe('Box access gate', () => {
     });
 
     await act(async () => {
-      await renderBoxRoute();
+      renderBoxAccessGate();
     });
 
     fireEvent.change(await screen.findByLabelText('Email address'), {
@@ -81,5 +94,37 @@ describe('Box access gate', () => {
         emailRedirectTo: 'http://localhost:3000/auth/callback?next=%2Fboxes%2FBOX-0001',
       },
     });
+  });
+
+  it('keeps deleted-box and access-denied states distinct for signed-in members', async () => {
+    getActiveWorkspaceMock.mockResolvedValue({
+      workspaceId: 'workspace-1',
+      workspaceName: 'Home Base',
+    });
+    getBoxRouteStateMock.mockResolvedValueOnce('deleted');
+
+    await act(async () => {
+      renderBoxAccessGate();
+    });
+
+    expect(await screen.findByRole('heading', { name: 'BOX-0001 was deleted' })).toBeVisible();
+    expect(screen.queryByRole('heading', { name: 'Access denied' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Sign in to open BOX-0001' })).not.toBeInTheDocument();
+  });
+
+  it('shows access denied without using deleted-box copy for an unauthorised member', async () => {
+    getActiveWorkspaceMock.mockResolvedValue({
+      workspaceId: 'workspace-1',
+      workspaceName: 'Home Base',
+    });
+    getBoxRouteStateMock.mockResolvedValueOnce('access-denied');
+
+    await act(async () => {
+      renderBoxAccessGate();
+    });
+
+    expect(await screen.findByRole('heading', { name: 'Access denied' })).toBeVisible();
+    expect(screen.queryByRole('heading', { name: 'BOX-0001 was deleted' })).not.toBeInTheDocument();
+    expect(screen.queryByText('This box no longer exists.')).not.toBeInTheDocument();
   });
 });
