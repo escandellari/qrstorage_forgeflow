@@ -44,16 +44,36 @@ describe('inventoryService', () => {
     expect(isMock).toHaveBeenCalledWith('retired_at', null);
   });
 
-  it('calls the create_box rpc with the provided name and maps the created box', async () => {
-    rpcMock.mockResolvedValue({
+it('inserts directly into boxes table with generated box_id', async () => {
+    selectMock.mockResolvedValue({
+      data: [{ box_id: 'BOX-0001' }],
+      error: null,
+    });
+    insertMock.mockResolvedValue({
       data: {
-        id: 'box-row-1',
+        id: 'box-1',
         workspace_id: 'workspace-1',
-        box_id: 'BOX-0001',
-        name: 'Winter clothes',
+        box_id: 'BOX-0002',
+        name: 'Test Box',
       },
       error: null,
     });
+
+    const result = await createBox('workspace-1', 'Test Box');
+
+    expect(insertMock).toHaveBeenCalledWith({
+      workspace_id: 'workspace-1',
+      box_id: 'BOX-0002',
+      name: 'Test Box',
+    });
+
+    expect(result).toEqual({
+      id: 'box-1',
+      workspaceId: 'workspace-1',
+      boxId: 'BOX-0002',
+      name: 'Test Box',
+    });
+  });
 
     await expect(createBox('workspace-1', 'Winter clothes')).resolves.toEqual({
       id: 'box-row-1',

@@ -42,13 +42,18 @@ export async function findWorkspaceMembership(userId: string): Promise<Workspace
 }
 
 export async function createWorkspaceForOwner(userId: string, workspaceName: string) {
+  console.log('Creating workspace:', workspaceName, 'for user:', userId);
+
   const { data: workspace, error: workspaceError } = await getSupabaseBrowserClient()
     .from('workspaces')
     .insert({ name: workspaceName })
     .select('id, name')
     .single();
 
+  console.log('Workspace insert result:', { workspace, error: workspaceError });
+
   if (workspaceError) {
+    console.error('Workspace error:', workspaceError);
     throw workspaceError;
   }
 
@@ -58,7 +63,10 @@ export async function createWorkspaceForOwner(userId: string, workspaceName: str
     role: 'owner',
   });
 
+  console.log('Membership insert result:', { error: membershipError });
+
   if (membershipError) {
+    console.error('Membership error, rolling back workspace:', membershipError);
     await getSupabaseBrowserClient().from('workspaces').delete().eq('id', workspace.id);
     throw membershipError;
   }

@@ -41,14 +41,28 @@ export async function createBox(
   workspaceId: string,
   name: string | null,
 ): Promise<BoxSummary> {
-  const { data, error } = await getSupabaseBrowserClient().rpc('create_box', {
-    workspace_id_input: workspaceId,
-    name_input: name,
-  });
+  // Generate box_id based on current count
+  const { data: existingBoxes } = await getSupabaseBrowserClient()
+    .from('boxes')
+    .select('box_id')
+    .eq('workspace_id', workspaceId);
+  
+  const nextNumber = (existingBoxes?.length ?? 0) + 1;
+  const boxId = `BOX-${String(nextNumber).padStart(4, '0')}`;
+
+  const { data, error } = await getSupabaseBrowserClient()
+    .from('boxes')
+    .insert({
+      workspace_id: workspaceId,
+      box_id: boxId,
+      name: name,
+    })
+    .select('id, workspace_id, box_id, name')
+    .single();
 
   if (error) {
     throw error;
   }
 
-  return mapBoxRow(data as BoxRow);
+  return mapBoxRow(data as unknown as BoxRow);
 }
