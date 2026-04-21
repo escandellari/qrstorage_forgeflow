@@ -24,7 +24,15 @@ function getSupabaseAnonKey() {
 
 export function getSupabaseBrowserClient() {
   if (!supabaseBrowserClient) {
-    supabaseBrowserClient = createClient(getSupabaseUrl(), getSupabaseAnonKey());
+    supabaseBrowserClient = createClient(getSupabaseUrl(), getSupabaseAnonKey(), {
+      auth: {
+        persistSession: true,
+        storageKey: 'qrstorage-auth',
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    });
   }
 
   return supabaseBrowserClient;

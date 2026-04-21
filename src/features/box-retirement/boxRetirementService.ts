@@ -4,6 +4,7 @@ export type BoxRouteState = 'active' | 'deleted' | 'access-denied';
 
 type BoxRouteRow = {
   id: string;
+  retired_at: string | null;
 };
 
 const BOX_ROUTE_SELECT = 'id';
@@ -11,24 +12,30 @@ const BOX_ROUTE_SELECT = 'id';
 async function findBoxByRetirementState(
   workspaceId: string,
   boxId: string,
-  retirementState: 'active' | 'deleted',
-) {
-  const baseQuery = getSupabaseBrowserClient()
+  state: 'active' | 'deleted',
+): Promise<BoxRouteRow | null> {
+  console.log('Querying boxes for:', { workspaceId, boxId });
+  
+  const { data, error } = await getSupabaseBrowserClient()
     .from('boxes')
-    .select(BOX_ROUTE_SELECT)
+    .select('id, retired_at')
     .eq('workspace_id', workspaceId)
-    .eq('box_id', boxId);
+    .eq('box_id', boxId)
+    .limit(1);
 
-  const { data, error } =
-    retirementState === 'active'
-      ? await baseQuery.is('retired_at', null)
-      : await baseQuery.not('retired_at', 'is', null);
+  console.log('Box result:', { data: data?.length, error });
 
-  if (error) {
-    throw error;
+  if (error || !data?.length) {
+    console.log('No box found');
+    return null;
   }
 
-  return (data?.[0] as BoxRouteRow | undefined) ?? null;
+  const row = data[0] as BoxRouteRow;
+  const isActive = row.retired_at === null;
+  
+  console.log('Box is active:', isActive);
+  
+  return (state === 'active' && isActive) || (state === 'deleted' && !isActive) ? row : null;
 }
 
 export async function getBoxRouteState(

@@ -38,8 +38,16 @@ export function AuthEntryPage({
     try {
       await requestMagicLink(email, nextPath);
       setIsSent(true);
-    } catch {
-      setErrorMessage('We could not send your sign-in link. Try again.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      // Show user-friendly message, strip technical details
+      if (message.includes('Too many requests')) {
+        setErrorMessage('Too many requests. Please wait 60 seconds and try again.');
+      } else if (message.includes('We could not send')) {
+        setErrorMessage('We could not send your sign-in link. Try again.');
+      } else {
+        setErrorMessage(message);
+      }
     } finally {
       setIsSubmitting(false);
     }
