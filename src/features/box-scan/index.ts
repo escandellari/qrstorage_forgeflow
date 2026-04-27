@@ -1,0 +1,1 @@
+export { BoxScanPage } from './BoxScanPage';
