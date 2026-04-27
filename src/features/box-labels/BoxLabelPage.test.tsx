@@ -87,6 +87,12 @@ describe('Box label route', () => {
     expect(screen.queryByText('Winter clothes')).not.toBeInTheDocument();
   });
 
+  it('shows a back link to the box details page', async () => {
+    await renderLoadedLabelRoute();
+
+    expect(screen.getByRole('link', { name: '< Back' })).toHaveAttribute('href', '/boxes/BOX-0001');
+  });
+
   it('prints the label with the browser print dialog', async () => {
     const printSpy = vi.fn();
     window.print = printSpy;

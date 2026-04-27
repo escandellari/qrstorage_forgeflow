@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { getActiveWorkspace } from '@/src/features/workspace-access';
@@ -66,7 +67,7 @@ export function BoxLabelPage({ boxId }: BoxLabelPageProps) {
   return (
     <main className="box-label-page">
       <div className="box-label-actions">
-        <a href={`/boxes/${boxId}`} className="ui-btn-link">← Back to box</a>
+        <Link href={`/boxes/${boxId}`} className="box-details-back">&lt; Back</Link>
         <BoxLabelPrintButton />
       </div>
       <section aria-label="Printable box label" className="box-label-sheet">
