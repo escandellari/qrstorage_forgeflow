@@ -1,18 +1,38 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
-import { getActiveWorkspace } from '@/src/features/workspace-access';
-import { getBoxDetails, type BoxDetails } from '@/src/features/box-details/boxDetailsService';
-import { BoxLabelPrintButton } from './BoxLabelPrintButton';
-import { buildBoxLabelUrl } from './boxLabelService';
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
+import { getActiveWorkspace } from "@/src/features/workspace-access";
+import {
+  getBoxDetails,
+  type BoxDetails,
+} from "@/src/features/box-details/boxDetailsService";
+import { BoxLabelPrintButton } from "./BoxLabelPrintButton";
+import { buildBoxLabelUrl } from "./boxLabelService";
 
 type BoxLabelPageProps = {
   boxId: string;
 };
 
-const LABEL_LOAD_ERROR_MESSAGE = 'We could not load your label. Sign in again.';
+function ChevronLeft() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  );
+}
+
+const LABEL_LOAD_ERROR_MESSAGE = "We could not load your label. Sign in again.";
 
 export function BoxLabelPage({ boxId }: BoxLabelPageProps) {
   const [box, setBox] = useState<BoxDetails | null>(null);
@@ -67,11 +87,17 @@ export function BoxLabelPage({ boxId }: BoxLabelPageProps) {
   return (
     <main className="box-label-page">
       <div className="box-label-actions">
-        <Link href={`/boxes/${boxId}`} className="box-details-back">&lt; Back</Link>
+        <Link href={`/boxes/${boxId}`} className="box-details-back">
+          <ChevronLeft /> Back
+        </Link>
         <BoxLabelPrintButton />
       </div>
       <section aria-label="Printable box label" className="box-label-sheet">
-        <QRCodeSVG className="box-label-qr" title="Box QR code" value={boxUrl} />
+        <QRCodeSVG
+          className="box-label-qr"
+          title="Box QR code"
+          value={boxUrl}
+        />
         <h1>{box.boxId}</h1>
         {box.name ? <p className="box-label-name">{box.name}</p> : null}
       </section>
