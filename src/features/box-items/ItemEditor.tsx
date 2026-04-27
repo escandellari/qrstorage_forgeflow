@@ -17,41 +17,62 @@ export function ItemEditor({
   onSubmit,
 }: ItemEditorProps) {
   return (
-    <form onSubmit={onSubmit}>
-      <label htmlFor="item-name">Item name</label>
-      <input
-        id="item-name"
-        type="text"
-        value={draft.name}
-        onChange={(event) => onChange({ ...draft, name: event.target.value })}
-      />
+    <form onSubmit={onSubmit} className="items-add-form">
+      <p className="items-add-form-title">{submitLabel === 'Add item' ? 'Add item' : 'Edit item'}</p>
 
-      <label htmlFor="item-category">Category</label>
-      <input
-        id="item-category"
-        type="text"
-        value={draft.category}
-        onChange={(event) => onChange({ ...draft, category: event.target.value })}
-      />
+      <div className="box-details-form-field">
+        <label htmlFor="item-name" className="ui-label">Item name</label>
+        <input
+          id="item-name"
+          type="text"
+          value={draft.name}
+          onChange={(event) => onChange({ ...draft, name: event.target.value })}
+          className="ui-input"
+          placeholder="e.g. Winter jacket"
+        />
+      </div>
 
-      <label htmlFor="item-notes">Item notes</label>
-      <textarea
-        id="item-notes"
-        value={draft.notes}
-        onChange={(event) => onChange({ ...draft, notes: event.target.value })}
-      />
+      <div className="items-add-row">
+        <div className="box-details-form-field">
+          <label htmlFor="item-category" className="ui-label">Category</label>
+          <input
+            id="item-category"
+            type="text"
+            value={draft.category}
+            onChange={(event) => onChange({ ...draft, category: event.target.value })}
+            className="ui-input"
+            placeholder="e.g. Clothing"
+          />
+        </div>
 
-      <label htmlFor="item-quantity">Quantity</label>
-      <input
-        id="item-quantity"
-        type="number"
-        inputMode="numeric"
-        min="0"
-        value={draft.quantity}
-        onChange={(event) => onChange({ ...draft, quantity: event.target.value })}
-      />
+        <div className="box-details-form-field">
+          <label htmlFor="item-quantity" className="ui-label">Quantity</label>
+          <input
+            id="item-quantity"
+            type="number"
+            inputMode="numeric"
+            min="0"
+            value={draft.quantity}
+            onChange={(event) => onChange({ ...draft, quantity: event.target.value })}
+            className="ui-input"
+            placeholder="1"
+          />
+        </div>
+      </div>
 
-      <button type="submit" disabled={isSubmitting || !draft.name.trim()}>
+      <div className="box-details-form-field">
+        <label htmlFor="item-notes" className="ui-label">Notes</label>
+        <textarea
+          id="item-notes"
+          value={draft.notes}
+          onChange={(event) => onChange({ ...draft, notes: event.target.value })}
+          className="ui-input"
+          style={{ minHeight: '64px', padding: '12px 16px', resize: 'vertical' }}
+          placeholder="Optional notes"
+        />
+      </div>
+
+      <button type="submit" disabled={isSubmitting || !draft.name.trim()} className="ui-btn-primary">
         {isSubmitting ? 'Saving item…' : submitLabel}
       </button>
     </form>

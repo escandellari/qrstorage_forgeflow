@@ -13,9 +13,28 @@ type AuthEntryPageProps = {
   nextPath?: string;
 };
 
+function LayersIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 2 7 12 12 22 7 12 2" />
+      <polyline points="2 17 12 22 22 17" />
+      <polyline points="2 12 12 17 22 12" />
+    </svg>
+  );
+}
+
+function EnvelopeIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6b4fd8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <polyline points="2,4 12,13 22,4" />
+    </svg>
+  );
+}
+
 export function AuthEntryPage({
-  title = 'qrstorage_forgeflow',
-  description = 'Email yourself a magic link to get into your shared storage workspace.',
+  title = 'qrstorage',
+  description = 'Sign in to manage your storage',
   nextPath,
 }: AuthEntryPageProps) {
   const requestMagicLink = useMagicLinkRequest();
@@ -40,7 +59,6 @@ export function AuthEntryPage({
       setIsSent(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
-      // Show user-friendly message, strip technical details
       if (message.includes('Too many requests')) {
         setErrorMessage('Too many requests. Please wait 60 seconds and try again.');
       } else if (message.includes('We could not send')) {
@@ -54,99 +72,53 @@ export function AuthEntryPage({
   }
 
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-      }}
-    >
-      <section
-        style={{
-          width: '100%',
-          maxWidth: '640px',
-          backgroundColor: '#ffffff',
-          border: '1px solid #e9e2ff',
-          borderRadius: '24px',
-          padding: '32px 24px',
-          boxShadow: '0 20px 45px rgba(108, 74, 182, 0.12)',
-        }}
-      >
-        <p
-          style={{
-            margin: '0 0 12px',
-            fontSize: '0.875rem',
-            fontWeight: 700,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: '#6a4bb6',
-          }}
-        >
-          Sign in
-        </p>
-        <h1 style={{ margin: '0 0 16px', fontSize: 'clamp(2rem, 8vw, 3.5rem)' }}>{title}</h1>
-        <p style={{ margin: '0 0 24px', fontSize: '1.125rem', lineHeight: 1.6 }}>{description}</p>
-
+    <div className="auth-shell">
+      <div className="auth-card">
         {isSent ? (
-          <div>
-            <h2 style={{ margin: '0 0 12px', fontSize: '1.5rem' }}>Check your email</h2>
-            <p style={{ margin: 0, fontSize: '1rem', lineHeight: 1.6, color: '#4f4565' }}>
-              We sent a magic link to {email}. Continue from your inbox.
+          <>
+            <div className="auth-sent-icon">
+              <EnvelopeIcon />
+            </div>
+            <h1 className="auth-sent-title">Check your email</h1>
+            <p className="auth-sent-body">
+              We sent a sign-in link to{' '}
+              <span className="auth-sent-email">{email}</span>
             </p>
-          </div>
+          </>
         ) : (
-          <form noValidate onSubmit={handleSubmit}>
-            <label
-              htmlFor="email"
-              style={{ display: 'block', marginBottom: '12px', fontWeight: 700 }}
-            >
-              Email address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(event) => {
-                setEmail(event.target.value);
-                setErrorMessage(null);
-              }}
-              style={{
-                width: '100%',
-                minHeight: '48px',
-                padding: '0 16px',
-                borderRadius: '16px',
-                border: '1px solid #cfc5eb',
-                marginBottom: '16px',
-              }}
-            />
-            {errorMessage ? (
-              <p
-                role="alert"
-                style={{ margin: '0 0 16px', fontSize: '0.95rem', color: '#b42318' }}
-              >
-                {errorMessage}
-              </p>
-            ) : null}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              style={{
-                width: '100%',
-                minHeight: '48px',
-                borderRadius: '999px',
-                border: 'none',
-                backgroundColor: '#6a4bb6',
-                color: '#ffffff',
-                fontWeight: 700,
-              }}
-            >
-              {isSubmitting ? 'Sending…' : 'Email me a sign-in link'}
-            </button>
-          </form>
+          <>
+            <div className="auth-app-icon">
+              <LayersIcon />
+            </div>
+            <h1 className="auth-title">{title}</h1>
+            <p className="auth-subtitle">{description}</p>
+            <form noValidate onSubmit={handleSubmit} className="auth-form">
+              <label htmlFor="email" className="ui-label">
+                Email address
+              </label>
+              <input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  setErrorMessage(null);
+                }}
+                className="ui-input"
+              />
+              {errorMessage ? (
+                <p role="alert" className="ui-alert">
+                  {errorMessage}
+                </p>
+              ) : null}
+              <button type="submit" disabled={isSubmitting} className="ui-btn-primary">
+                {isSubmitting ? 'Sending…' : 'Send magic link'}
+              </button>
+            </form>
+          </>
         )}
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }

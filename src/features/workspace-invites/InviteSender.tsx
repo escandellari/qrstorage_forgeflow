@@ -59,29 +59,37 @@ export function InviteSender({ workspaceId }: InviteSenderProps) {
   }
 
   return (
-    <section aria-label="Invite members">
-      <h2>Invite a member</h2>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="member-email-address">Member email address</label>
-        <input
-          id="member-email-address"
-          type="email"
-          required
-          value={email}
-          onChange={(event) => {
-            setEmail(event.target.value);
-            setErrorMessage(null);
-          }}
-        />
-        {errorMessage ? <p role="alert">{errorMessage}</p> : null}
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Creating invite…' : 'Create invite'}
-        </button>
+    <section aria-label="Invite members" className="invite-card">
+      <h2 className="invite-title">Invite a member</h2>
+      <form onSubmit={handleSubmit} className="invite-form">
+        <label htmlFor="member-email-address" className="ui-label">
+          Member email address
+        </label>
+        <div className="invite-row">
+          <input
+            id="member-email-address"
+            type="email"
+            required
+            placeholder="colleague@example.com"
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setErrorMessage(null);
+            }}
+            className="ui-input"
+          />
+          <button type="submit" disabled={isSubmitting} className="invite-send-btn">
+            {isSubmitting ? 'Sending…' : 'Invite'}
+          </button>
+        </div>
+        {errorMessage ? <p role="alert" className="ui-alert">{errorMessage}</p> : null}
       </form>
       {createdInvite ? (
-        <div>
-          <p>Invite ready for {createdInvite.invitedEmail}.</p>
-          <a href={buildInviteEmailHref(createdInvite.invitedEmail, createdInvite.inviteUrl)}>Email invite</a>
+        <div className="invite-success" style={{ marginTop: '12px' }}>
+          Invite ready for {createdInvite.invitedEmail}.{' '}
+          <a href={buildInviteEmailHref(createdInvite.invitedEmail, createdInvite.inviteUrl)}>
+            Email invite →
+          </a>
         </div>
       ) : null}
     </section>

@@ -100,3 +100,39 @@ test('submitting the workspace name creates the owner workspace and shows the si
   expect(createdMembershipRequestBody).toContain('user-1');
   expect(createdMembershipRequestBody).toContain('owner');
 });
+
+test('workspace home shows a Go to dashboard button that links to the inventory page', async ({
+  page,
+}) => {
+  await page.route('**/auth/v1/token**', async (route) => {
+    await fulfillCallbackExchange(route);
+  });
+
+  await page.route('**/rest/v1/workspace_memberships**', async (route) => {
+    if (route.request().method() === 'GET') {
+      await fulfillMembershipLookup(route);
+      return;
+    }
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({ workspace_id: 'workspace-1', user_id: 'user-1', role: 'owner' }),
+    });
+  });
+
+  await page.route('**/rest/v1/workspaces**', async (route) => {
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({ id: 'workspace-1', name: 'Home Base' }),
+    });
+  });
+
+  await openCallback(page);
+  await page.getByLabel('Workspace name').fill('Home Base');
+  await page.getByRole('button', { name: 'Create workspace' }).click();
+
+  const dashboardLink = page.getByRole('link', { name: 'Go to dashboard' });
+  await expect(dashboardLink).toBeVisible();
+  await expect(dashboardLink).toHaveAttribute('href', '/inventory');
+});

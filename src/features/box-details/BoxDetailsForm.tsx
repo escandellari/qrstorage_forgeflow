@@ -18,48 +18,63 @@ export function BoxDetailsForm({
 }: BoxDetailsFormProps) {
   return (
     <form onSubmit={onSubmit}>
-      <label htmlFor="box-name">Box name</label>
-      <input
-        id="box-name"
-        type="text"
-        value={draft.name}
-        onChange={(event) => {
-          onChange({ ...draft, name: event.target.value });
-        }}
-      />
+      <div className="box-details-form-fields">
+        <div className="box-details-form-field">
+          <label htmlFor="box-name" className="ui-label">Box name</label>
+          <input
+            id="box-name"
+            type="text"
+            value={draft.name}
+            onChange={(event) => {
+              onChange({ ...draft, name: event.target.value });
+            }}
+            className="ui-input"
+          />
+        </div>
 
-      <label htmlFor="box-location">Location</label>
-      <input
-        id="box-location"
-        type="text"
-        value={draft.location}
-        onChange={(event) => {
-          onChange({ ...draft, location: event.target.value });
-        }}
-      />
+        <div className="box-details-form-field">
+          <label htmlFor="box-location" className="ui-label">Location</label>
+          <input
+            id="box-location"
+            type="text"
+            value={draft.location}
+            onChange={(event) => {
+              onChange({ ...draft, location: event.target.value });
+            }}
+            className="ui-input"
+          />
+        </div>
 
-      <label htmlFor="box-notes">Notes</label>
-      <textarea
-        id="box-notes"
-        value={draft.notes}
-        onChange={(event) => {
-          onChange({ ...draft, notes: event.target.value });
-        }}
-      />
+        <div className="box-details-form-field">
+          <label htmlFor="box-notes" className="ui-label">Notes</label>
+          <textarea
+            id="box-notes"
+            value={draft.notes}
+            onChange={(event) => {
+              onChange({ ...draft, notes: event.target.value });
+            }}
+            className="ui-input"
+            style={{ minHeight: '80px', padding: '12px 16px', resize: 'vertical' }}
+          />
+        </div>
 
-      <label htmlFor="box-label-target">Label target</label>
-      <input
-        id="box-label-target"
-        type="text"
-        value={draft.labelTarget}
-        onChange={(event) => {
-          onChange({ ...draft, labelTarget: event.target.value });
-        }}
-      />
+        <div className="box-details-form-field">
+          <label htmlFor="box-label-target" className="ui-label">Label target</label>
+          <input
+            id="box-label-target"
+            type="text"
+            value={draft.labelTarget}
+            onChange={(event) => {
+              onChange({ ...draft, labelTarget: event.target.value });
+            }}
+            className="ui-input"
+          />
+        </div>
+      </div>
 
-      {errorMessage ? <p role="alert">{errorMessage}</p> : null}
+      {errorMessage ? <p role="alert" className="ui-alert" style={{ marginBottom: '12px' }}>{errorMessage}</p> : null}
 
-      <button type="submit" disabled={isSaving}>
+      <button type="submit" disabled={isSaving} className="ui-btn-primary">
         {isSaving ? 'Saving…' : 'Save box details'}
       </button>
     </form>

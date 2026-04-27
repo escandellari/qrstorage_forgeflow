@@ -63,3 +63,16 @@ test('an authorised member edits box details and sees the saved values on the sa
   await expect(page.getByRole('region', { name: 'Saved box details' })).toContainText('Heavy jackets only');
   await expect(page.getByRole('region', { name: 'Saved box details' })).toContainText('Lid top');
 });
+
+test('box details page shows a Back to inventory link that points to /inventory', async ({
+  page,
+}) => {
+  await page.route('**/rest/v1/workspace_memberships**', stubActiveWorkspace);
+  await page.route('**/rest/v1/boxes**', stubBoxRead);
+
+  await page.goto('/boxes/BOX-0001');
+
+  const backLink = page.getByRole('link', { name: 'Back to inventory' });
+  await expect(backLink).toBeVisible();
+  await expect(backLink).toHaveAttribute('href', '/inventory');
+});

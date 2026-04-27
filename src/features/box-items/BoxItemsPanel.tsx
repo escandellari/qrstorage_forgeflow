@@ -96,44 +96,73 @@ export function BoxItemsPanel({ boxId }: BoxItemsPanelProps) {
   }
 
   return (
-    <section aria-label="Box items">
-      <h2>Box items</h2>
-      {errorMessage ? <p role="alert">{errorMessage}</p> : null}
-      {isLoading ? <p>Loading items…</p> : null}
-      {!isLoading && !hasLoadError && items.length === 0 ? <p>No items yet.</p> : null}
-      <ul>
-        {items.map((item) => (
-          <li key={item.id}>
-            <strong>{item.name}</strong>
-            <div>Category: {getItemValueLabel(item.category)}</div>
-            <div>Notes: {getItemValueLabel(item.notes)}</div>
-            <div>Quantity: {getItemValueLabel(item.quantity)}</div>
-            <button
-              type="button"
-              onClick={() => {
-                setDraft(createBoxItemDraft(item));
-                setEditingItemId(item.id);
-                setErrorMessage(null);
-              }}
-            >
-              Edit {item.name}
-            </button>
-            <button type="button" onClick={() => void handleRemove(item)}>
-              Remove {item.name}
-            </button>
-          </li>
-        ))}
-      </ul>
-      <ItemEditor
-        draft={draft}
-        submitLabel={editingItemId ? 'Save item' : 'Add item'}
-        isSubmitting={isSubmitting}
-        onChange={(nextDraft) => {
-          setDraft(nextDraft);
-          setErrorMessage(null);
-        }}
-        onSubmit={handleSubmit}
-      />
-    </section>
+    <div className="items-panel-card" style={{ marginBottom: '16px' }}>
+      <section aria-label="Box items">
+        <p className="items-panel-title">Items</p>
+
+        {errorMessage ? <p role="alert" className="ui-alert" style={{ marginBottom: '12px' }}>{errorMessage}</p> : null}
+
+        {isLoading ? (
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading items…</p>
+        ) : !hasLoadError && items.length === 0 ? (
+          <div className="ui-empty" style={{ padding: '24px' }}>
+            <p className="ui-empty-title">No items yet</p>
+            <p className="ui-empty-body">Add the first item to this box below</p>
+          </div>
+        ) : (
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {items.map((item) => (
+              <li key={item.id} className="item-row">
+                <div className="item-row-info">
+                  <div className="item-row-name">{item.name}</div>
+                  <div className="item-row-meta">
+                    {item.category ? `${item.category}` : ''}
+                    {item.category && item.notes ? ' · ' : ''}
+                    {item.notes ? item.notes : ''}
+                    {!item.category && !item.notes ? 'No details' : ''}
+                  </div>
+                </div>
+                {item.quantity !== null && item.quantity !== '' ? (
+                  <span className="item-qty-badge">{item.quantity}</span>
+                ) : null}
+                <div className="item-row-actions">
+                  <button
+                    type="button"
+                    className="item-action-btn"
+                    onClick={() => {
+                      setDraft(createBoxItemDraft(item));
+                      setEditingItemId(item.id);
+                      setErrorMessage(null);
+                    }}
+                    aria-label={`Edit ${item.name}`}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="item-action-btn item-action-btn-danger"
+                    onClick={() => void handleRemove(item)}
+                    aria-label={`Remove ${item.name}`}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <ItemEditor
+          draft={draft}
+          submitLabel={editingItemId ? 'Save item' : 'Add item'}
+          isSubmitting={isSubmitting}
+          onChange={(nextDraft) => {
+            setDraft(nextDraft);
+            setErrorMessage(null);
+          }}
+          onSubmit={handleSubmit}
+        />
+      </section>
+    </div>
   );
 }
