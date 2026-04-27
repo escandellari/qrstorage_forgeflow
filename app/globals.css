@@ -715,7 +715,8 @@ a {
 .box-label-actions {
   width: min(100%, 480px);
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .box-label-actions button {
