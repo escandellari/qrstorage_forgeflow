@@ -122,7 +122,7 @@ export function BoxItemsPanel({ boxId }: BoxItemsPanelProps) {
                     {!item.category && !item.notes ? 'No details' : ''}
                   </div>
                 </div>
-                {item.quantity !== null && item.quantity !== '' ? (
+                {item.quantity !== null ? (
                   <span className="item-qty-badge">{item.quantity}</span>
                 ) : null}
                 <div className="item-row-actions">
