@@ -127,6 +127,7 @@ export function InventoryPage() {
       {/* Create box card */}
       <div className="inventory-create-card">
         <h2 className="inventory-create-title">Create new box</h2>
+        {errorMessage && !isFormOpen ? <p role="alert" className="ui-alert" style={{ marginBottom: '12px' }}>{errorMessage}</p> : null}
         {isFormOpen ? (
           <form onSubmit={handleSubmit}>
             <div className="inventory-create-fields">
@@ -179,6 +180,10 @@ export function InventoryPage() {
 
       {/* Box list */}
       <div className="inventory-list-card">
+        <nav aria-label="Inventory actions" className="inventory-actions-nav">
+          <Link href="/search" className="ui-btn-link">Search inventory</Link>
+          <Link href="/scan" className="ui-btn-link">Scan box QR</Link>
+        </nav>
         {!hasLoadError && boxes.length === 0 ? (
           <div className="ui-empty">
             <div className="ui-empty-icon">
@@ -187,11 +192,7 @@ export function InventoryPage() {
             <p className="ui-empty-title">No boxes yet</p>
             <p className="ui-empty-body">Create your first box to get started</p>
           </div>
-        ) : (
-          <nav aria-label="Inventory actions" style={{ borderBottom: '1px solid var(--purple-border)', padding: '12px 20px' }}>
-            <Link href="/search" className="ui-btn-link">Search inventory</Link>
-          </nav>
-        )}
+        ) : null}
         {boxes.length > 0 ? (
           <ul style={{ list: 'none', margin: 0, padding: 0 } as React.CSSProperties}>
             {boxes.map((box) => (

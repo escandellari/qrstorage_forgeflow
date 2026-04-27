@@ -56,13 +56,21 @@ function mockActiveWorkspace() {
   getActiveWorkspaceMock.mockResolvedValue(activeWorkspace);
 }
 
+async function openCreateBoxForm() {
+  const createButton = await screen.findByRole('button', { name: '+ Create box' });
+
+  fireEvent.click(createButton);
+
+  return screen.findByLabelText('Box name');
+}
+
 async function submitCreateBoxForm(name: string) {
-  fireEvent.change(await screen.findByLabelText('Box name'), {
+  fireEvent.change(await openCreateBoxForm(), {
     target: { value: name },
   });
 
   await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Create box' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
   });
 }
 
@@ -90,8 +98,9 @@ describe('Inventory route', () => {
       await workspaceDeferred.promise;
     });
 
-    expect(await screen.findByLabelText('Box name')).toBeVisible();
-    expect(screen.getByText('No boxes yet. Create your first box to get started.')).toBeVisible();
+    expect(await screen.findByRole('button', { name: '+ Create box' })).toBeVisible();
+    expect(screen.getByText('No boxes yet')).toBeVisible();
+    expect(screen.getByText('Create your first box to get started')).toBeVisible();
   });
 
   it('renders existing boxes for the active workspace with links to the box pages', async () => {
@@ -119,13 +128,24 @@ describe('Inventory route', () => {
     expect(searchLink).toHaveAttribute('href', '/search');
   });
 
+  it('shows a visible path into QR scanning from the inventory route', async () => {
+    mockActiveWorkspace();
+    listBoxesMock.mockResolvedValue([]);
+
+    renderInventoryRoute();
+
+    const scanLink = await screen.findByRole('link', { name: 'Scan box QR' });
+
+    expect(scanLink).toHaveAttribute('href', '/scan');
+  });
+
   it('rejects a blank member email before creating an invite', async () => {
     mockActiveWorkspace();
     listBoxesMock.mockResolvedValue([]);
 
     renderInventoryRoute();
 
-    const createInviteButton = await screen.findByRole('button', { name: 'Create invite' });
+    const createInviteButton = await screen.findByRole('button', { name: 'Invite' });
 
     await act(async () => {
       fireEvent.click(createInviteButton);
@@ -150,12 +170,12 @@ describe('Inventory route', () => {
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Create invite' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Invite' }));
     });
 
     expect(createWorkspaceInviteMock).toHaveBeenCalledWith('workspace-1', 'pat@example.com');
     expect(await screen.findByText('Invite ready for pat@example.com.')).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Email invite' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Email invite →' })).toHaveAttribute(
       'href',
       expect.stringContaining('mailto:pat@example.com'),
     );
@@ -190,7 +210,7 @@ describe('Inventory route', () => {
 
     expect(await screen.findByText('BOX-0001')).toBeVisible();
     expect(screen.getByText('Winter clothes')).toBeVisible();
-    expect(screen.getByLabelText('Box name')).toHaveValue('');
+    expect(screen.getByRole('button', { name: '+ Create box' })).toBeVisible();
     expect(createBoxMock).toHaveBeenCalledWith('workspace-1', 'Winter clothes');
   });
 
@@ -202,15 +222,15 @@ describe('Inventory route', () => {
 
     renderInventoryRoute();
 
-    fireEvent.change(await screen.findByLabelText('Box name'), {
+    fireEvent.change(await openCreateBoxForm(), {
       target: { value: 'Winter clothes' },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create box' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Creating box…' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Creating…' }));
 
     expect(createBoxMock).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('button', { name: 'Creating box…' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Creating…' })).toBeDisabled();
 
     await act(async () => {
       createDeferred.resolve(createdBox);
@@ -218,7 +238,7 @@ describe('Inventory route', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Create box' })).toBeEnabled();
+      expect(screen.getByRole('button', { name: '+ Create box' })).toBeEnabled();
     });
   });
 
@@ -247,9 +267,9 @@ describe('Inventory route', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'We could not load your inventory. Try again.',
     );
-    expect(screen.getByLabelText('Box name')).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Create box' })).toBeVisible();
-    expect(screen.queryByText('No boxes yet. Create your first box to get started.')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '+ Create box' })).toBeVisible();
+    expect(screen.queryByText('No boxes yet')).not.toBeInTheDocument();
+    expect(screen.queryByText('Create your first box to get started')).not.toBeInTheDocument();
   });
 
   it('shows a recovery state when no active workspace can be resolved', async () => {
