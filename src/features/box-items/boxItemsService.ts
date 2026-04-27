@@ -74,7 +74,7 @@ export function createBoxItemDraft(item?: BoxItem): BoxItemDraft {
 
 export async function listBoxItems(boxId: string): Promise<BoxItem[]> {
   const { data, error } = await getSupabaseBrowserClient()
-    .from('items')
+    .from('box_items')
     .select(ITEM_SELECT)
     .eq('box_id', boxId);
 
@@ -87,7 +87,7 @@ export async function listBoxItems(boxId: string): Promise<BoxItem[]> {
 
 export async function createBoxItem(boxId: string, draft: BoxItemDraft): Promise<BoxItem> {
   const { data, error } = await getSupabaseBrowserClient()
-    .from('items')
+    .from('box_items')
     .insert(mapDraftToItemRow(boxId, draft))
     .select(ITEM_SELECT)
     .single();
@@ -101,7 +101,7 @@ export async function createBoxItem(boxId: string, draft: BoxItemDraft): Promise
 
 export async function updateBoxItem(itemId: string, boxId: string, draft: BoxItemDraft): Promise<BoxItem> {
   const { data, error } = await getSupabaseBrowserClient()
-    .from('items')
+    .from('box_items')
     .update(mapDraftToItemRow(boxId, draft))
     .eq('id', itemId)
     .select(ITEM_SELECT)
@@ -115,7 +115,7 @@ export async function updateBoxItem(itemId: string, boxId: string, draft: BoxIte
 }
 
 export async function removeBoxItem(itemId: string): Promise<void> {
-  const { error } = await getSupabaseBrowserClient().from('items').delete().eq('id', itemId);
+  const { error } = await getSupabaseBrowserClient().from('box_items').delete().eq('id', itemId);
 
   if (error) {
     throw error;

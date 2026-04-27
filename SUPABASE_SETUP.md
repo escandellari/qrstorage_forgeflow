@@ -49,7 +49,8 @@ create table if not exists public.box_items (
   id uuid not null default gen_random_uuid() primary key,
   box_id uuid not null references public.boxes(id) on delete cascade,
   name text not null,
-  description text,
+  category text,
+  notes text,
   quantity integer,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -152,7 +153,8 @@ Run each in the SQL Editor to enable:
 | id | uuid | Primary key |
 | box_id | uuid | Foreign key to boxes |
 | name | text | Item name |
-| description | text | Item description |
+| category | text | Item category |
+| notes | text | Notes about the item |
 | quantity | integer | Number of items |
 | created_at | timestamptz | Creation timestamp |
 | updated_at | timestamptz | Last update timestamp |

@@ -66,6 +66,7 @@ export function BoxLabelPage({ boxId }: BoxLabelPageProps) {
   return (
     <main className="box-label-page">
       <div className="box-label-actions">
+        <a href={`/boxes/${boxId}`} className="ui-btn-link">← Back to box</a>
         <BoxLabelPrintButton />
       </div>
       <section aria-label="Printable box label" className="box-label-sheet">
