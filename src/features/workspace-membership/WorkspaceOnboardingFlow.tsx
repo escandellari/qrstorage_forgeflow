@@ -292,18 +292,16 @@ export function WorkspaceOnboardingFlow() {
   return (
     <WorkspaceOnboardingLayout>
       {flowState === 'needs-workspace' ? (
-          <>
-            <h1 style={{ margin: '0 0 16px', fontSize: 'clamp(2rem, 8vw, 3.5rem)' }}>
-              Name your shared workspace
-            </h1>
-            <p style={{ margin: '0 0 24px', fontSize: '1rem', lineHeight: 1.6, color: '#4f4565' }}>
-              Create the workspace once, then start sharing boxes and inventory.
-            </p>
-            <form noValidate onSubmit={handleSubmit}>
-              <label
-                htmlFor="workspace-name"
-                style={{ display: 'block', marginBottom: '12px', fontWeight: 700 }}
-              >
+        <>
+          <h1 style={{ margin: '0 0 8px', fontSize: '1.5rem', fontWeight: 700 }}>
+            Name your shared workspace
+          </h1>
+          <p style={{ margin: '0 0 24px', fontSize: '0.95rem', lineHeight: 1.5, color: 'var(--text-muted)' }}>
+            Create the workspace once, then start sharing boxes and inventory.
+          </p>
+          <form noValidate onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div>
+              <label htmlFor="workspace-name" className="ui-label">
                 Workspace name
               </label>
               <input
@@ -314,74 +312,35 @@ export function WorkspaceOnboardingFlow() {
                   setWorkspaceName(event.target.value);
                   setErrorMessage(null);
                 }}
-                style={{
-                  width: '100%',
-                  minHeight: '48px',
-                  padding: '0 16px',
-                  borderRadius: '16px',
-                  border: '1px solid #cfc5eb',
-                  marginBottom: '16px',
-                }}
+                className="ui-input"
               />
-              {errorMessage ? (
-                <p
-                  role="alert"
-                  style={{ margin: '0 0 16px', fontSize: '0.95rem', color: '#b42318' }}
-                >
-                  {errorMessage}
-                </p>
-              ) : null}
-              <button
-                type="submit"
-                style={{
-                  width: '100%',
-                  minHeight: '48px',
-                  borderRadius: '999px',
-                  border: 'none',
-                  backgroundColor: '#6a4bb6',
-                  color: '#ffffff',
-                  fontWeight: 700,
-                }}
-              >
-                Create workspace
-              </button>
-            </form>
-          </>
-        ) : flowState === 'error' ? (
-          <>
-            <h1 style={{ margin: '0 0 16px', fontSize: 'clamp(2rem, 8vw, 3.5rem)' }}>
-              Completing sign-in…
-            </h1>
-            <p
-              role="alert"
-              style={{ margin: '0 0 16px', fontSize: '1rem', lineHeight: 1.6, color: '#b42318' }}
-            >
-              {errorMessage}
-            </p>
-            <a
-              href="/"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '48px',
-                padding: '0 20px',
-                borderRadius: '999px',
-                backgroundColor: '#6a4bb6',
-                color: '#ffffff',
-                fontWeight: 700,
-                textDecoration: 'none',
-              }}
-            >
-              Back to home
-            </a>
-          </>
+            </div>
+            {errorMessage ? (
+              <p role="alert" className="ui-alert">{errorMessage}</p>
+            ) : null}
+            <button type="submit" className="ui-btn-primary">
+              Create workspace
+            </button>
+          </form>
+        </>
+      ) : flowState === 'error' ? (
+        <>
+          <h1 style={{ margin: '0 0 12px', fontSize: '1.5rem', fontWeight: 700 }}>
+            Sign-in failed
+          </h1>
+          <p role="alert" className="ui-alert" style={{ marginBottom: '16px' }}>
+            {errorMessage}
+          </p>
+          <a href="/" className="ui-btn-primary">
+            Back to home
+          </a>
+        </>
       ) : (
         <>
-          <h1 style={{ margin: '0 0 16px', fontSize: 'clamp(2rem, 8vw, 3.5rem)' }}>
+          <h1 style={{ margin: '0 0 8px', fontSize: '1.5rem', fontWeight: 700 }}>
             Completing sign-in…
           </h1>
-          <p style={{ margin: 0, fontSize: '1rem', lineHeight: 1.6, color: '#4f4565' }}>
+          <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.5, color: 'var(--text-muted)' }}>
             Please wait while we finish signing you in.
           </p>
         </>

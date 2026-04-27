@@ -23,6 +23,23 @@ function getSavedValueLabel(value: string | null) {
   return value && value.trim() ? value : 'Not set';
 }
 
+function ChevronLeft() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  );
+}
+
+function LabelIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+      <line x1="7" y1="7" x2="7.01" y2="7" />
+    </svg>
+  );
+}
+
 export function BoxDetailsPage({ boxId }: BoxDetailsPageProps) {
   const router = useRouter();
   const [box, setBox] = useState<BoxDetails | null>(null);
@@ -106,62 +123,89 @@ export function BoxDetailsPage({ boxId }: BoxDetailsPageProps) {
 
   if (isLoading) {
     return (
-      <main>
-        <h1>Loading box…</h1>
+      <main className="box-details-shell">
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Loading box…</p>
       </main>
     );
   }
 
   if (!box) {
     return (
-      <main>
-        <h1>Box</h1>
-        <p role="alert">{errorMessage}</p>
+      <main className="box-details-shell">
+        <p role="alert" className="ui-alert">{errorMessage}</p>
       </main>
     );
   }
 
   return (
-    <main>
-      <h1>{box.boxId}</h1>
-      <section aria-label="Saved box details">
-        <h2>Saved box details</h2>
-        <dl>
-          <div>
-            <dt>Box name</dt>
-            <dd>{getSavedValueLabel(box.name)}</dd>
-          </div>
-          <div>
-            <dt>Location</dt>
-            <dd>{getSavedValueLabel(box.location)}</dd>
-          </div>
-          <div>
-            <dt>Notes</dt>
-            <dd>{getSavedValueLabel(box.notes)}</dd>
-          </div>
-          <div>
-            <dt>Label target</dt>
-            <dd>{getSavedValueLabel(box.labelTarget)}</dd>
-          </div>
-        </dl>
-      </section>
-      <nav aria-label="Box actions">
-        <Link href={`/boxes/${box.boxId}/label`}>Open label view</Link>
-        <button type="button" onClick={() => void handleDelete()} disabled={isDeleting}>
-          {isDeleting ? 'Deleting box…' : 'Delete box'}
-        </button>
-      </nav>
-      <BoxDetailsForm
-        draft={draft}
-        isSaving={isSaving}
-        errorMessage={errorMessage}
-        onChange={(nextDraft) => {
-          setDraft(nextDraft);
-          setErrorMessage(null);
-        }}
-        onSubmit={handleSubmit}
-      />
+    <main className="box-details-shell">
+      {/* Header */}
+      <div className="box-details-header">
+        <Link href="/inventory" className="box-details-back">
+          <ChevronLeft /> Back
+        </Link>
+        <h1 className="box-details-title">{box.boxId}</h1>
+        <Link href={`/boxes/${box.boxId}/label`} className="box-details-action-link">
+          <LabelIcon /> Label
+        </Link>
+      </div>
+
+      {/* Saved summary */}
+      <div className="box-details-card">
+        <p className="box-details-section-title">Saved details</p>
+        <section aria-label="Saved box details">
+          <dl className="box-details-dl">
+            <div>
+              <dt>Box name</dt>
+              <dd>{getSavedValueLabel(box.name)}</dd>
+            </div>
+            <div>
+              <dt>Location</dt>
+              <dd>{getSavedValueLabel(box.location)}</dd>
+            </div>
+            <div>
+              <dt>Notes</dt>
+              <dd>{getSavedValueLabel(box.notes)}</dd>
+            </div>
+            <div>
+              <dt>Label target</dt>
+              <dd>{getSavedValueLabel(box.labelTarget)}</dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+
+      {/* Edit form */}
+      <div className="box-details-card">
+        <p className="box-details-section-title">Edit details</p>
+        <BoxDetailsForm
+          draft={draft}
+          isSaving={isSaving}
+          errorMessage={errorMessage}
+          onChange={(nextDraft) => {
+            setDraft(nextDraft);
+            setErrorMessage(null);
+          }}
+          onSubmit={handleSubmit}
+        />
+      </div>
+
+      {/* Items */}
       <BoxItemsPanel boxId={box.id} />
+
+      {/* Delete */}
+      <div style={{ padding: '8px 0 24px' }}>
+        <nav aria-label="Box actions">
+          <button
+            type="button"
+            onClick={() => void handleDelete()}
+            disabled={isDeleting}
+            className="ui-btn-danger"
+          >
+            {isDeleting ? 'Deleting box…' : 'Delete box'}
+          </button>
+        </nav>
+      </div>
     </main>
   );
 }

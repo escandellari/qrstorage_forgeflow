@@ -56,53 +56,63 @@ export function InventorySearchPage() {
 
   if (!hasWorkspace) {
     return (
-      <main>
-        <h1>Search</h1>
-        <p role="alert">{errorMessage}</p>
+      <main className="search-shell">
+        <h1 className="search-page-title">Search</h1>
+        <p role="alert" className="ui-alert">{errorMessage}</p>
       </main>
     );
   }
 
   if (isLoadingWorkspace) {
     return (
-      <main>
-        <h1>Search</h1>
-        <p>Loading search…</p>
+      <main className="search-shell">
+        <h1 className="search-page-title">Search</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Loading search…</p>
       </main>
     );
   }
 
   return (
-    <main>
-      <h1>Search</h1>
-      <form aria-label="Inventory lookup form" onSubmit={handleSubmit}>
-        <label htmlFor="search-query">Search</label>
+    <main className="search-shell">
+      <h1 className="search-page-title">Search</h1>
+
+      <form aria-label="Inventory lookup form" onSubmit={handleSubmit} className="search-form-card">
         <input
           id="search-query"
           type="search"
           value={query}
+          placeholder="Search boxes and items…"
           onChange={(event) => {
             setQuery(event.target.value);
             setErrorMessage(null);
           }}
+          className="ui-input"
         />
-        {errorMessage ? <p role="alert">{errorMessage}</p> : null}
-        <button type="submit">Search</button>
+        <label htmlFor="search-query" style={{ display: 'none' }}>Search</label>
+        <button type="submit" className="search-submit-btn">Search</button>
       </form>
+
+      {errorMessage ? <p role="alert" className="ui-alert" style={{ marginBottom: '12px' }}>{errorMessage}</p> : null}
+
       {hasSearched && results.length === 0 ? (
-        <p>No search results found.</p>
+        <div className="inventory-list-card">
+          <div className="ui-empty">
+            <p className="ui-empty-title">No results found</p>
+            <p className="ui-empty-body">Try a different search term</p>
+          </div>
+        </div>
       ) : results.length > 0 ? (
-        <ul>
+        <ul className="search-results-list">
           {results.map((result) => (
             <li
               key={`${result.boxRowId}:${result.boxId}:${result.rankSource}:${result.matchContext}`}
             >
-              <Link href={`/boxes/${result.boxId}`}>
-                <span>{result.boxId}</span>
-                <span>{result.boxName ?? 'Unnamed box'}</span>
+              <Link href={`/boxes/${result.boxId}`} className="search-result-card">
+                <div className="search-result-id">{result.boxId}</div>
+                <div className="search-result-name">{result.boxName ?? 'Unnamed box'}</div>
+                {result.location ? <div className="search-result-location">{result.location}</div> : null}
+                {result.matchContext ? <div className="search-result-context">{result.matchContext}</div> : null}
               </Link>
-              <p>{result.location}</p>
-              <p>{result.matchContext}</p>
             </li>
           ))}
         </ul>
