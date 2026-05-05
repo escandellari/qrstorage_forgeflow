@@ -4,8 +4,17 @@ import { useCallback } from 'react';
 import { buildAuthCallbackUrl } from '@/src/features/workspace-access/authRedirect';
 import { getSupabaseBrowserClient } from './supabaseBrowserClient';
 
+const ALLOWED_EMAILS = (process.env.NEXT_PUBLIC_ALLOWED_EMAILS ?? '')
+  .split(',')
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
 export function useMagicLinkRequest() {
   return useCallback(async (email: string, nextPath?: string) => {
+    if (ALLOWED_EMAILS.length > 0 && !ALLOWED_EMAILS.includes(email.trim().toLowerCase())) {
+      throw new Error('This email is not authorized to access this application.');
+    }
+
     const redirectTo = buildAuthCallbackUrl(nextPath);
     console.log('Sending magic link to:', email, 'redirectTo:', redirectTo);
 
